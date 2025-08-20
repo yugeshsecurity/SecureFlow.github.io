@@ -1,0 +1,90 @@
+---
+title: "Contact"
+subtitle: "Get in Touch"
+page-layout: full
+title-block-banner: false
+css: 
+  - assets/css/about-new.css
+  - assets/css/about-animations.css
+format:
+  html:
+    include-in-header: 
+      - text: |
+          <style>
+          body { margin: 0; padding: 0; }
+          .quarto-title-block { display: none !important; }
+          .contact-redirect {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+          }
+          .redirect-content {
+            max-width: 600px;
+            animation: fadeInUp 1s ease-out;
+          }
+          .redirect-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+          .redirect-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+          }
+          .redirect-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #e94560, #f27c00);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+          }
+          .redirect-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+            color: white;
+            text-decoration: none;
+          }
+          @keyframes fadeInUp {
+            0% {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          </style>
+      - text: |
+          <script>
+          // Auto-redirect after 3 seconds
+          setTimeout(function() {
+            window.location.href = 'pages/about/index.html#connect';
+          }, 3000);
+          </script>
+---
+
+::: {.contact-redirect}
+::: {.redirect-content}
+# Let's Connect! 
+
+All contact information and ways to reach me are available on my About page. You'll be automatically redirected in 3 seconds, or click the button below.
+
+[Go to About Page](pages/about/index.html#connect){.redirect-button}
+:::
+:::

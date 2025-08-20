@@ -1,0 +1,208 @@
+/* Modern Footer Styles for SecureFlow - Quarto-compatible */
+
+/* Target actual Quarto footer classes */
+.footer,
+footer.footer {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  color: #ffffff !important;
+  padding: 3rem 0 2rem !important;
+  margin-top: 4rem !important;
+  border-top: 3px solid #e94560 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Add subtle pattern overlay */
+.footer::before,
+footer.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>');
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Footer container - target actual Quarto nav-footer */
+.nav-footer {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 2rem !important;
+}
+
+/* Left section styling */
+.nav-footer-left {
+  flex: 1 !important;
+  min-width: 250px !important;
+}
+
+.nav-footer-left strong {
+  color: #e94560 !important;
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+  display: block !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.nav-footer-left p {
+  color: rgba(255, 255, 255, 0.8) !important;
+  line-height: 1.6 !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Center section styling */
+.nav-footer-center {
+  flex: 1 !important;
+  text-align: center !important;
+  min-width: 200px !important;
+}
+
+.nav-footer-center a {
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  margin: 0 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+.nav-footer-center a:hover {
+  color: #e94560 !important;
+  text-decoration: underline !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Right section - social icons */
+.nav-footer-right {
+  flex: 1 !important;
+  text-align: right !important;
+  min-width: 200px !important;
+}
+
+.footer-items {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+/* Social icons styling - target actual Quarto structure */
+.footer-items .nav-item a,
+.nav-footer-right .nav-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 45px !important;
+  height: 45px !important;
+  margin: 0 0.25rem !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  text-decoration: none !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.footer-items .nav-item a:hover,
+.nav-footer-right .nav-link:hover {
+  background: #e94560 !important;
+  border-color: #e94560 !important;
+  color: #ffffff !important;
+  transform: translateY(-3px) scale(1.1) !important;
+  box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4) !important;
+}
+
+/* Icon colors for different platforms */
+.nav-footer-right a[aria-label*="GitHub"]:hover {
+  background: #333 !important;
+  border-color: #333 !important;
+  box-shadow: 0 8px 25px rgba(51, 51, 51, 0.4) !important;
+}
+
+.nav-footer-right a[aria-label*="LinkedIn"]:hover {
+  background: #0077b5 !important;
+  border-color: #0077b5 !important;
+  box-shadow: 0 8px 25px rgba(0, 119, 181, 0.4) !important;
+}
+
+.nav-footer-right a[aria-label*="Twitter"]:hover {
+  background: #1da1f2 !important;
+  border-color: #1da1f2 !important;
+  box-shadow: 0 8px 25px rgba(29, 161, 242, 0.4) !important;
+}
+
+.nav-footer-right a[aria-label*="RSS"]:hover {
+  background: #ff6600 !important;
+  border-color: #ff6600 !important;
+  box-shadow: 0 8px 25px rgba(255, 102, 0, 0.4) !important;
+}
+
+/* Footer divider line */
+.footer::after,
+footer.footer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-footer {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 1.5rem !important;
+  }
+  
+  .nav-footer-right,
+  .footer-items {
+    justify-content: center !important;
+  }
+  
+  .footer-items .nav-item a,
+  .nav-footer-right .nav-link {
+    margin: 0 0.25rem !important;
+  }
+}
+
+/* Copyright and legal text styling */
+.nav-footer-left p:last-child {
+  font-size: 0.9rem !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  margin-top: 1rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Additional styling for any generic footer elements */
+footer {
+  font-family: inherit !important;
+}
+
+footer a {
+  transition: all 0.3s ease !important;
+}
+
+footer strong {
+  color: #e94560 !important;
+}

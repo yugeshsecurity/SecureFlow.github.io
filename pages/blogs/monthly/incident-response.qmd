@@ -1,0 +1,22 @@
+---
+title: "Incident Response & Digital Forensics"
+description: "Effective incident response and forensic investigation techniques"
+date: "2024-07-01"
+categories: [incident-response, forensics, investigation, malware-analysis]
+image: "incident-response-banner.jpg"
+---
+
+# Incident Response & Digital Forensics
+
+Coming soon - Comprehensive guide to incident response procedures and digital forensic investigation techniques.
+
+## Topics to Cover
+
+- Incident Response Planning
+- Digital Evidence Collection
+- Memory and Disk Forensics
+- Network Traffic Analysis
+- Malware Analysis Techniques
+- Legal and Compliance Considerations
+
+*This post is part of our monthly deep-dive series on security topics.*

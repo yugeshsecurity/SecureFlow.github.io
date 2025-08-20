@@ -1,0 +1,22 @@
+---
+title: "Ethical Hacking"
+description: "Ethical hacking principles, techniques, and career guidance"
+date: "2024-04-01"
+categories: [ethical-hacking, bug-bounty, career]
+image: "ethical-hacking-banner.jpg"
+---
+
+# Ethical Hacking & Bug Bounty
+
+Coming soon - Guide to ethical hacking principles, bug bounty programs, and building a career in cybersecurity.
+
+## Topics to Cover
+
+- Ethical Hacking Fundamentals
+- Bug Bounty Program Participation
+- Responsible Disclosure
+- Career Development in InfoSec
+- Certification Pathways
+- Building Your Security Lab
+
+*This post is part of our monthly deep-dive series on security topics.*

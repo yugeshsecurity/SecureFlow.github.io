@@ -1,0 +1,24 @@
+---
+title: "New Supply Chain Attack Targeting NPM Packages"
+description: "Analysis of the latest supply chain attack and defensive strategies"
+date: "2025-01-13"
+categories: [supply-chain, npm, malware, threat-intelligence]
+image: "supply-chain-banner.jpg"
+---
+
+# Supply Chain Security Alert: NPM Package Compromise
+
+## Incident Overview
+This week, security researchers identified a sophisticated supply chain attack targeting popular NPM packages used in enterprise applications.
+
+## Attack Methodology
+- Package typosquatting
+- Dependency confusion
+- Malicious code injection
+
+## Detection and Prevention
+- Package verification techniques
+- Dependency scanning tools
+- Security policies for package management
+
+*Part of our weekly security update series covering current threats and vulnerabilities.*

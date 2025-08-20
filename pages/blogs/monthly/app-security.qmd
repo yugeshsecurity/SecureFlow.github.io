@@ -1,0 +1,22 @@
+---
+title: "Application Security"
+description: "Comprehensive guide to application security engineering practices"
+date: "2024-01-01"
+categories: [app-security, engineering, secure-development]
+image: "app-security-banner.jpg"
+---
+
+# Application Security Engineering
+
+Coming soon - In-depth coverage of application security engineering practices, secure coding standards, and security architecture patterns.
+
+## Topics to Cover
+
+- Secure Development Lifecycle (SDLC)
+- Threat Modeling
+- Code Review Best Practices
+- Security Testing Integration
+- Dependency Management
+- Container Security
+
+*This post is part of our monthly deep-dive series on security topics.*

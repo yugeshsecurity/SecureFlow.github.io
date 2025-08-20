@@ -1,0 +1,134 @@
+/*-- scss:defaults --*/
+
+// Import Bootstrap functions
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+// Define custom colors
+$primary: #1a1a2e;
+$secondary: #0f3460;
+$accent: #e94560;
+$light: #f5f6fa;
+$dark: #1a1a2e;
+
+// Typography
+$font-family-sans-serif: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+$headings-font-weight: 600;
+
+// Navbar customization
+$navbar-dark-color: rgba(255, 255, 255, 0.9);
+$navbar-dark-hover-color: #e94560;
+$navbar-dark-brand-color: #ffffff;
+$navbar-dark-brand-hover-color: #e94560;
+
+// Link styling
+$link-color: $accent;
+$link-hover-color: darken($accent, 10%);
+
+/*-- scss:rules --*/
+
+// Custom navbar enhancements
+.navbar {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+// Typography improvements
+h1, h2, h3, h4, h5, h6 {
+  color: $primary;
+  margin-bottom: 1rem;
+}
+
+// Code block styling
+pre {
+  background: lighten($primary, 5%);
+  border-radius: 8px;
+  border-left: 4px solid $accent;
+  margin-bottom: 1.5rem;
+}
+
+.sourceCode {
+  background: lighten($primary, 5%) !important;
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 4px solid $accent;
+}
+
+// Fix empty code blocks
+.sourceCode:empty {
+  display: none !important;
+}
+
+pre:empty {
+  display: none !important;
+}
+
+// Hide code copy buttons completely
+.code-copy-button {
+  display: none !important;
+}
+
+// Hide any empty code containers
+.cell-code-container:empty {
+  display: none !important;
+}
+
+// Specific fix for title blocks with code artifacts
+.quarto-title-block .sourceCode {
+  display: none !important;
+}
+
+// Card styling for blog posts
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+// Button styling
+.btn-primary {
+  background: linear-gradient(135deg, $primary, $secondary);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, $secondary, $accent);
+  transform: translateY(-2px);
+}
+
+// Table of contents styling
+.sidebar nav[role="doc-toc"] {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 3px solid $accent;
+}
+
+// Footer styling
+footer {
+  background: $primary;
+  color: white;
+  padding: 2rem 0;
+  margin-top: 3rem;
+}
+
+// Responsive design improvements
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+}

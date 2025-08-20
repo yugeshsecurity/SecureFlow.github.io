@@ -1,0 +1,89 @@
+project:
+  type: website
+
+website:
+  title: "SecureFlow"
+  navbar:
+    logo: "assets/logo/secureflow-logo.svg"
+    title: "SecureFlow"
+    href: "index.qmd"
+    background: "#1a1a2e"
+    foreground: "#ffffff"
+    search: true
+    left:
+      - text: "Blog"
+        menu:
+          - text: "All Posts"
+            href: posts.qmd
+          - text: "Monthly Deep Dives"
+            href: pages/blogs/monthly/
+          - text: "Weekly Updates"
+            href: pages/blogs/weekly/
+      - text: "Topics"
+        menu:
+          - text: "Application Security"
+            href: pages/blogs/monthly/app-security.qmd
+          - text: "Web App Security"
+            href: pages/blogs/monthly/web-app-security.qmd
+          - text: "Penetration Testing"
+            href: pages/blogs/monthly/pentesting.qmd
+          - text: "Ethical Hacking"
+            href: pages/blogs/monthly/ethical-hacking.qmd
+          - text: "Cloud Security"
+            href: pages/blogs/monthly/cloud-security.qmd
+          - text: "DevSecOps"
+            href: pages/blogs/monthly/devsecops.qmd
+    right:
+      - text: "About"
+        href: pages/about/index.qmd
+      - icon: github
+        href: https://github.com/
+        aria-label: "GitHub"
+      - icon: linkedin
+        href: https://linkedin.com/
+        aria-label: "LinkedIn"
+      - icon: rss
+        href: index.xml
+        aria-label: "RSS Feed"
+  page-footer:
+    left: |
+      **SecureFlow** - Empowering Security Engineers  
+      © 2025 SecureFlow. All rights reserved.
+    center: |
+      [Privacy Policy](privacy.html) • [Terms of Service](terms.html) • [Contact](contact.html)
+    right:
+      - icon: github
+        href: https://github.com/
+        aria-label: "GitHub"
+      - icon: linkedin
+        href: https://linkedin.com/
+        aria-label: "LinkedIn"
+      - icon: twitter
+        href: https://twitter.com/
+        aria-label: "Twitter"
+      - icon: rss
+        href: index.xml
+        aria-label: "RSS Feed"
+    background: "dark"
+    foreground: "light"
+    border: true
+format:
+  html:
+    theme: 
+      - cosmo
+      - custom.scss
+    css: 
+      - styles.css
+      - assets/css/global.css
+      - assets/css/navbar.css
+      - assets/css/listing.css
+      - assets/css/home.css
+      - assets/css/footer.css
+    toc: true
+    toc-location: right
+    code-fold: false
+    code-tools: false
+    code-copy: false
+
+
+

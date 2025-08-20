@@ -1,0 +1,323 @@
+---
+title: "About"
+subtitle: "Meet the Security Professional Behind SecureFlow"
+page-layout: full
+title-block-banner: true
+css: 
+  - ../../assets/css/about-new.css
+  - ../../assets/css/about-animations.css
+format:
+  html:
+    include-in-header: 
+      - text: |
+          <style>
+          .profile-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 80px 0 60px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+          }
+          .profile-hero * {
+            color: #ffffff !important;
+          }
+          .profile-hero p {
+            color: #ffffff !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+          }
+          .profile-hero strong {
+            color: #ffffff !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+          }
+          .profile-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+          }
+          .profile-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+          }
+          .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 30px auto;
+            border: 4px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, #e94560, #f27c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          }
+          .profile-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: #ffffff !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: none;
+            -webkit-text-fill-color: #ffffff;
+          }
+          .profile-title {
+            font-size: 1.3rem;
+            color: #ffffff !important;
+            opacity: 1;
+            margin: 0 0 20px 0;
+            font-weight: 400;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+          }
+          .profile-tagline {
+            font-size: 1.1rem;
+            color: #ffffff !important;
+            opacity: 1;
+            line-height: 1.6;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+          }
+          .profile-tagline p {
+            color: #ffffff !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+          }
+          </style>
+      - text: |
+          <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // Simple hover effect for avatar
+            const avatar = document.querySelector('.profile-avatar');
+            if (avatar) {
+              avatar.addEventListener('click', function() {
+                this.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                  this.style.transform = 'scale(1)';
+                }, 200);
+              });
+            }
+            
+            // Intersection Observer for specialization cards
+            const specCards = document.querySelectorAll('.spec-item');
+            const specObserver = new IntersectionObserver((entries) => {
+              entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                  setTimeout(() => {
+                    entry.target.style.animation = `cardSlideIn 0.6s ease-out forwards`;
+                  }, index * 100);
+                }
+              });
+            }, { threshold: 0.1 });
+            
+            specCards.forEach(card => specObserver.observe(card));
+            
+            // Intersection Observer for value cards
+            const valueCards = document.querySelectorAll('.value-item');
+            const valueObserver = new IntersectionObserver((entries) => {
+              entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                  setTimeout(() => {
+                    entry.target.style.animation = `cardSlideIn 0.6s ease-out forwards`;
+                  }, index * 100);
+                }
+              });
+            }, { threshold: 0.1 });
+            
+            valueCards.forEach(card => valueObserver.observe(card));
+          });
+          </script>
+---
+
+::: {.profile-hero}
+::: {.profile-content}
+
+# Yugesh Mekala {.profile-name}
+
+## 🛡️ Cybersecurity Professional & Technical Writer {.profile-title}
+
+**🚀 Transforming Complex Security Challenges into Clear, Actionable Solutions**
+
+::: {.profile-tagline}
+Welcome to SecureFlow! I'm passionate about demystifying cybersecurity for professionals at every level. Through detailed analysis, hands-on tutorials, and real-world case studies, I help security teams stay ahead of evolving threats.
+:::
+
+:::
+:::
+
+::: {.about-container}
+
+::: {.section .expertise-overview}
+## 🎯 What I Do
+
+I'm a cybersecurity professional dedicated to making complex security concepts accessible and actionable. With years of experience in threat analysis, security engineering, and incident response, I bridge the gap between technical depth and practical implementation.
+
+### 🔥 My Mission
+- **Simplify the Complex**: Breaking down advanced security topics into digestible insights
+- **Real-World Focus**: Sharing techniques and tools used in actual security operations
+- **Community Building**: Fostering knowledge exchange among security professionals
+- **Continuous Learning**: Staying current with the latest threats and defensive strategies
+
+### 💪 Core Expertise
+- **🔍 Threat Intelligence**: Advanced persistent threat (APT) analysis, threat hunting, and IOC development
+- **🛡️ Security Engineering**: SIEM/SOAR implementation, incident response automation, and detection engineering  
+- **☁️ Cloud Security**: Multi-cloud security architecture, DevSecOops, and container security
+- **📝 Technical Communication**: Transforming complex security concepts into clear, actionable documentation
+- **🎯 Penetration Testing**: Web application security, network assessments, and vulnerability research
+- **⚖️ Compliance**: SOX, PCI DSS, NIST Cybersecurity Framework, and ISO 27001 implementation
+
+:::
+
+::: {.section .specializations}
+## Areas of Specialization
+
+::: {.specialization-grid}
+::: {.spec-item}
+### 🔒 Application Security
+- OWASP methodologies and secure coding practices
+- Web application penetration testing
+- API security assessment and hardening
+- Secure software development lifecycle (SSDLC)
+:::
+
+::: {.spec-item}
+### 🌐 Network Security
+- Network architecture and segmentation
+- Firewall configuration and management
+- Intrusion detection and prevention systems
+- Network traffic analysis and forensics
+:::
+
+::: {.spec-item}
+### ☁️ Cloud Security
+- AWS, Azure, and GCP security implementations
+- Container and Kubernetes security
+- Infrastructure as Code (IaC) security
+- Cloud compliance and governance
+:::
+
+::: {.spec-item}
+### 🕵️ Threat Intelligence
+- Advanced persistent threat (APT) analysis
+- Malware analysis and reverse engineering
+- Threat hunting methodologies
+- Security incident investigation
+:::
+
+::: {.spec-item}
+### 🛡️ Identity & Access Management
+- Zero Trust architecture implementation
+- Multi-factor authentication (MFA) systems
+- Privileged access management (PAM)
+- Identity governance and lifecycle management
+:::
+
+::: {.spec-item}
+### 📊 Security Operations
+- Security Information and Event Management (SIEM)
+- Security orchestration and automated response (SOAR)
+- Incident response and forensics
+- Vulnerability management and assessment
+:::
+:::
+:::
+
+::: {.section .secureflow-mission}
+## The SecureFlow Mission
+
+**SecureFlow** was created to bridge the gap between theoretical cybersecurity knowledge and practical, real-world application. Too often, valuable security insights remain locked in vendor whitepapers or academic research that doesn't translate to actionable defense strategies.
+
+### What Makes SecureFlow Different
+
+**🎯 Practical Focus:** Every tutorial and guide is tested in real environments before publication
+
+**🔬 Technical Depth:** Deep dives into the technical details that matter to security professionals
+
+**📚 Educational Value:** Complex concepts broken down into understandable, implementable steps
+
+**🚀 Current Relevance:** Coverage of emerging threats, latest tools, and evolving attack techniques
+
+### Content Philosophy
+
+I believe cybersecurity education should be:
+- **Immediately actionable** - You can implement what you learn today
+- **Technically accurate** - Verified through hands-on testing and research
+- **Continuously updated** - Reflecting the evolving threat landscape
+- **Accessible** - Complex topics explained clearly without losing technical depth
+
+:::
+
+::: {.section .professional-values}
+## Professional Values & Approach
+
+::: {.values-grid}
+::: {.value-item}
+### Application Security
+Building secure applications from the ground up. I focus on secure coding practices, vulnerability assessment, and implementing robust security controls throughout the development lifecycle.
+:::
+
+::: {.value-item}
+### Web Application Security
+Protecting web applications against OWASP Top 10 and emerging threats. Specializing in authentication, authorization, input validation, and secure API design.
+:::
+
+::: {.value-item}
+### Penetration Testing
+Ethical hacking to identify vulnerabilities before malicious actors do. Comprehensive testing methodologies for networks, applications, and infrastructure components.
+:::
+
+::: {.value-item}
+### Ethical Hacking
+Responsible disclosure and defensive security practices. Using offensive security knowledge to strengthen defensive postures and protect organizational assets.
+:::
+
+::: {.value-item}
+### Cloud Security
+Securing cloud environments across AWS, Azure, and GCP. Focus on identity management, data protection, network security, and compliance in cloud-native architectures.
+:::
+
+::: {.value-item}
+### DevSecOps
+Integrating security into DevOps pipelines. Automating security testing, implementing security-as-code, and fostering a culture of shared security responsibility.
+:::
+:::
+:::
+
+::: {.section .credentials}
+## Certifications & Continuous Education
+
+- **Industry Certifications:** Multiple cybersecurity certifications focusing on practical skills
+- **Continuous Learning:** Regular participation in security conferences, workshops, and training
+- **Research & Development:** Active engagement with security research community and tool development
+- **Professional Networks:** Member of various cybersecurity professional organizations
+
+:::
+
+::: {.section .connect}
+## Let's Connect {#connect}
+
+I'm always interested in connecting with fellow cybersecurity professionals, discussing emerging threats, collaborating on security research, or exploring new technologies and methodologies.
+
+**Looking to connect? Reach out if you:**
+- Have a complex security challenge you'd like to discuss
+- Want to collaborate on security research or content
+- Have suggestions for topics to cover on SecureFlow
+- Are interested in technical consulting or speaking engagements
+
+::: {.contact-buttons}
+[Get In Touch](../../contact.html){.btn .btn-primary}
+[LinkedIn](https://linkedin.com/in/yugesh-mekala){.btn .btn-outline}
+[GitHub](https://github.com/){.btn .btn-outline}
+:::
+
+:::
+
+:::

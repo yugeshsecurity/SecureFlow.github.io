@@ -1,0 +1,212 @@
+---
+title: "Python for Cybersecurity: Essential Code Examples"
+subtitle: "Practical Python scripts every security professional should know"
+author: "Yugesh Mekala"
+date: "2024-01-10"
+categories: [python, scripting, automation, tools]
+description: "Essential Python code examples for cybersecurity professionals including network scanning, log analysis, and security automation"
+image: "image.jpg"
+---
+
+Python has become an indispensable tool in the cybersecurity toolkit. From automating routine tasks to developing custom security tools, Python's simplicity and powerful libraries make it perfect for security professionals.
+
+## Network Reconnaissance with Python
+
+Here's a simple port scanner that demonstrates basic network reconnaissance:
+
+```python
+import socket
+import sys
+from datetime import datetime
+
+def scan_port(target, port):
+    try:
+        # Create a socket object
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        
+        # Attempt to connect
+        result = sock.connect_ex((target, port))
+        sock.close()
+        
+        return result == 0
+    except socket.gaierror:
+        return False
+
+def port_scanner(target, start_port, end_port):
+    print(f"Starting port scan on {target}")
+    print(f"Time started: {datetime.now()}")
+    print("-" * 50)
+    
+    open_ports = []
+    
+    for port in range(start_port, end_port + 1):
+        if scan_port(target, port):
+            print(f"Port {port}: Open")
+            open_ports.append(port)
+    
+    print("-" * 50)
+    print(f"Scan completed. Found {len(open_ports)} open ports")
+    return open_ports
+
+# Example usage
+if __name__ == "__main__":
+    target_host = "127.0.0.1"
+    open_ports = port_scanner(target_host, 20, 80)
+```
+
+## Log Analysis Automation
+
+Security professionals often need to analyze large log files. Here's a Python script for basic log analysis:
+
+```python
+import re
+import collections
+from datetime import datetime
+
+def analyze_access_logs(log_file):
+    """
+    Analyze web server access logs for suspicious activity
+    """
+    suspicious_patterns = [
+        r'\.\./',  # Directory traversal
+        r'<script',  # XSS attempts
+        r'union.*select',  # SQL injection
+        r'cmd\.exe',  # Command injection
+    ]
+    
+    ip_counter = collections.Counter()
+    suspicious_requests = []
+    
+    with open(log_file, 'r') as file:
+        for line_num, line in enumerate(file, 1):
+            # Extract IP address (assuming common log format)
+            ip_match = re.match(r'^(\d+\.\d+\.\d+\.\d+)', line)
+            if ip_match:
+                ip = ip_match.group(1)
+                ip_counter[ip] += 1
+            
+            # Check for suspicious patterns
+            for pattern in suspicious_patterns:
+                if re.search(pattern, line, re.IGNORECASE):
+                    suspicious_requests.append({
+                        'line': line_num,
+                        'content': line.strip(),
+                        'pattern': pattern
+                    })
+    
+    return ip_counter, suspicious_requests
+
+# Example usage
+def generate_security_report(log_file):
+    ip_counts, suspicious = analyze_access_logs(log_file)
+    
+    print("=== SECURITY ANALYSIS REPORT ===")
+    print(f"Analysis time: {datetime.now()}")
+    print()
+    
+    print("Top 10 IP addresses by request count:")
+    for ip, count in ip_counts.most_common(10):
+        print(f"  {ip}: {count} requests")
+    
+    print(f"\nSuspicious requests found: {len(suspicious)}")
+    for req in suspicious[:5]:  # Show first 5
+        print(f"  Line {req['line']}: {req['content'][:100]}...")
+```
+
+## Password Strength Checker
+
+A practical tool for validating password complexity:
+
+```python
+import re
+import string
+
+def check_password_strength(password):
+    """
+    Comprehensive password strength checker
+    """
+    score = 0
+    feedback = []
+    
+    # Length check
+    if len(password) >= 12:
+        score += 2
+    elif len(password) >= 8:
+        score += 1
+    else:
+        feedback.append("Password should be at least 8 characters long")
+    
+    # Character diversity checks
+    if re.search(r'[a-z]', password):
+        score += 1
+    else:
+        feedback.append("Add lowercase letters")
+    
+    if re.search(r'[A-Z]', password):
+        score += 1
+    else:
+        feedback.append("Add uppercase letters")
+    
+    if re.search(r'\d', password):
+        score += 1
+    else:
+        feedback.append("Add numbers")
+    
+    if re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        score += 1
+    else:
+        feedback.append("Add special characters")
+    
+    # Advanced checks
+    if not re.search(r'(.)\1{2,}', password):  # No repeated characters
+        score += 1
+    else:
+        feedback.append("Avoid repeated characters")
+    
+    # Strength rating
+    if score >= 6:
+        strength = "Strong"
+    elif score >= 4:
+        strength = "Medium"
+    else:
+        strength = "Weak"
+    
+    return {
+        'score': score,
+        'strength': strength,
+        'feedback': feedback
+    }
+
+# Example usage
+def test_passwords():
+    test_cases = [
+        "password123",
+        "P@ssw0rd!",
+        "MyVerySecureP@ssw0rd2024!"
+    ]
+    
+    for pwd in test_cases:
+        result = check_password_strength(pwd)
+        print(f"Password: {pwd}")
+        print(f"Strength: {result['strength']} (Score: {result['score']}/7)")
+        if result['feedback']:
+            print("Recommendations:")
+            for tip in result['feedback']:
+                print(f"  - {tip}")
+        print("-" * 40)
+
+test_passwords()
+```
+
+## Security Best Practices
+
+When writing security-focused Python code, remember:
+
+1. **Input Validation**: Always validate and sanitize user inputs
+2. **Error Handling**: Don't expose sensitive information in error messages
+3. **Logging**: Log security events appropriately
+4. **Dependencies**: Keep libraries updated and audit for vulnerabilities
+5. **Secrets Management**: Never hardcode credentials or API keys
+
+These examples demonstrate how Python can be used to automate common security tasks, analyze data, and build custom tools. The key is to start simple and gradually build more sophisticated solutions as your needs grow.

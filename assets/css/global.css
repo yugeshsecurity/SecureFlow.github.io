@@ -1,0 +1,506 @@
+/* Global styles for SecureFlow */
+:root {
+  --primary-color: #1a1a2e;
+  --accent-color: #0f3460;
+  --highlight-color: #e94560;
+  --background-color: #f5f6fa;
+  --font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  background: var(--background-color);
+  color: var(--primary-color);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+}
+
+/* Fix empty code blocks and spans */
+.sourceCode:empty,
+pre:empty,
+code:empty {
+  display: none !important;
+}
+
+/* Hide empty spans that might appear from Quarto rendering */
+span:empty {
+  display: none !important;
+}
+
+/* Fix any stray code blocks */
+.cell-output-display .sourceCode {
+  margin-bottom: 0;
+}
+
+.cell-output-display .sourceCode:last-child {
+  margin-bottom: 1rem;
+}
+
+/* Completely eliminate code copy buttons */
+.code-copy-button,
+.code-tools-button,
+.code-tools,
+button[title="Copy to Clipboard"],
+.bi-clipboard,
+.bi-code {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Hide empty code blocks with copy buttons */
+pre:has(.code-copy-button):empty,
+.sourceCode:has(.code-copy-button):empty {
+  display: none !important;
+}
+
+/* Hide the specific problematic element in title blocks */
+.quarto-title-block .sourceCode,
+.quarto-title-block pre,
+.listing-title + .sourceCode,
+.listing-subtitle + .sourceCode,
+h1 + .sourceCode:empty,
+h2 + .sourceCode:empty {
+  display: none !important;
+}
+
+/* More aggressive code element hiding */
+.quarto-listing .sourceCode,
+.hero-section .sourceCode,
+.features-section .sourceCode,
+body .sourceCode:empty {
+  display: none !important;
+}
+
+/* ==============================================
+   GLOBAL DOCUMENT LAYOUT FIXES  
+   ============================================== */
+
+/* Fix document positioning - prevent going under navbar with proper targeting */
+body.nav-fixed #quarto-content,
+div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar,
+.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
+  padding-top: 90px !important; /* Account for 70px navbar + 20px buffer */
+  margin-top: 0 !important;
+}
+
+/* Additional clearance for different page layouts */
+body.nav-fixed main.content.quarto-banner-title-block.column-page-left,
+main.content.quarto-banner-title-block.column-page-left {
+  padding-top: 20px !important;
+  margin-top: 0 !important;
+}
+
+/* Fix document width - remove excessive side space with proper targeting */
+.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar,
+div#quarto-content.quarto-container.page-columns,
+.page-columns {
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Target the main content area specifically */
+main.content.quarto-banner-title-block.column-page-left {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Ensure title block is visible */
+header#title-block-header.quarto-title-block.default.page-columns.page-full {
+  padding-top: 20px !important;
+  margin-top: 0 !important;
+}
+
+.quarto-title-banner.page-columns.page-full {
+  padding-top: 10px !important;
+}
+
+/* ==============================================
+   GLOBAL CODE BLOCK STYLING - FIXED NESTED ISSUES
+   ============================================== */
+
+/* Light background for all code blocks globally - target outer containers only */
+div.sourceCode {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 1px solid #dee2e6 !important;
+  border-left: 4px solid #007acc !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin: 20px 0 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+  position: relative !important;
+  overflow-x: auto !important;
+}
+
+/* PREVENT NESTED STYLING - crucial fix */
+div.sourceCode div.sourceCode,
+div.sourceCode pre.sourceCode,
+.sourceCode .sourceCode {
+  background: transparent !important;
+  border: none !important;
+  border-left: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Style the inner pre and code elements but not as containers */
+div.sourceCode > pre.sourceCode {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #212529 !important;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+div.sourceCode > pre.sourceCode > code.sourceCode {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  display: block !important;
+}
+
+/* Inline code styling - separate from code blocks */
+code:not(.sourceCode):not(div.sourceCode code):not(pre.sourceCode code) {
+  background: #e9ecef !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  margin: 0 2px !important;
+  font-size: 0.9em !important;
+  color: #e83e8c !important;
+  font-weight: 600 !important;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
+}
+
+/* Header styling for code blocks */
+div.sourceCode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007acc, #0078d4, #106ebe);
+  border-radius: 8px 8px 0 0;
+  z-index: 1;
+}
+
+/* PREVENT multiple ::before elements on nested containers */
+div.sourceCode div.sourceCode::before,
+div.sourceCode pre.sourceCode::before,
+.sourceCode .sourceCode::before {
+  display: none !important;
+}
+
+/* Enhanced syntax highlighting for light theme */
+div.sourceCode .co { color: #6a737d !important; font-style: italic; } /* Comment */
+div.sourceCode .kw { color: #d73a49 !important; font-weight: 600; } /* Keyword */
+div.sourceCode .dt { color: #6f42c1 !important; font-weight: 600; } /* DataType */
+div.sourceCode .dv { color: #005cc5 !important; } /* DecVal */
+div.sourceCode .bn { color: #005cc5 !important; } /* BaseN */
+div.sourceCode .fl { color: #005cc5 !important; } /* Float */
+div.sourceCode .ch { color: #032f62 !important; } /* Char */
+div.sourceCode .st { color: #032f62 !important; } /* String */
+div.sourceCode .op { color: #d73a49 !important; } /* Operator */
+div.sourceCode .fu { color: #6f42c1 !important; font-weight: 600; } /* Function */
+div.sourceCode .va { color: #e36209 !important; } /* Variable */
+div.sourceCode .cf { color: #d73a49 !important; font-weight: 600; } /* ControlFlow */
+
+/* Hide line numbers background if present */
+pre.numberSource {
+  background: transparent !important;
+  border-left: none !important;
+}
+
+/* Hide code copy buttons globally */
+.code-copy-button,
+.code-tools-button,
+.code-tools,
+button[title="Copy to Clipboard"],
+.bi-clipboard,
+.bi-code {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ==============================================
+   RESPONSIVE LAYOUT IMPROVEMENTS
+   ============================================== */
+
+/* Ensure content doesn't overflow on mobile */
+@media (max-width: 768px) {
+  .quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar,
+  div#quarto-content.quarto-container.page-columns,
+  .page-columns {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  body.nav-fixed #quarto-content,
+  div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
+    padding-top: 80px !important; /* Slightly less on mobile */
+  }
+  
+  div.sourceCode {
+    padding: 15px !important;
+    margin: 15px 0 !important;
+    font-size: 13px !important;
+  }
+  
+  /* Better mobile title spacing */
+  .quarto-title-block {
+    padding-top: 20px !important;
+  }
+  
+  .quarto-title-banner {
+    padding-top: 10px !important;
+  }
+}
+
+/* ==============================================
+   NAVBAR CLEARANCE FIX - ENHANCED
+   ============================================== */
+
+/* Force navbar to be fixed and ensure proper z-index */
+nav.navbar.navbar-expand-lg,
+.navbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1030 !important;
+  background: var(--primary-color) !important;
+}
+
+/* Ensure body accounts for fixed navbar */
+body.nav-fixed {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Make sure the first content doesn't hide under navbar */
+body.nav-fixed #quarto-content > *:first-child,
+#quarto-content > header:first-child,
+header#title-block-header:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Ensure title blocks are visible with proper spacing */
+.quarto-title-block {
+  margin-top: 0 !important;
+  padding-top: 25px !important;
+}
+
+.quarto-title-banner {
+  padding-top: 15px !important;
+  margin-top: 0 !important;
+}
+
+/* ==============================================
+   CONTENT WIDTH OPTIMIZATION - ENHANCED
+   ============================================== */
+
+/* Optimize reading width for better UX with specific targeting */
+.quarto-container,
+div#quarto-content.quarto-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
+}
+
+/* Ensure main content uses full available width */
+main.content.quarto-banner-title-block.column-page-left,
+#quarto-document-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Full width for specific content types */
+.page-layout-full .quarto-container {
+  max-width: 100% !important;
+  padding: 0 2rem !important;
+}
+
+/* Better article layout */
+.page-layout-article .page-columns {
+  max-width: 1000px !important;
+  margin: 0 auto !important;
+}
+
+/* ==============================================
+   QUARTO OVERRIDE FIXES - HIGHEST SPECIFICITY
+   ============================================== */
+
+/* Override Quarto's default layout completely */
+html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
+  padding-top: 90px !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Override Quarto's main content area */
+html body.nav-fixed div#quarto-content main.content.quarto-banner-title-block.column-page-left {
+  padding-top: 20px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Override Quarto's title area */
+html body.nav-fixed header#title-block-header.quarto-title-block.default.page-columns.page-full {
+  padding-top: 25px !important;
+  margin-top: 0 !important;
+}
+
+html body.nav-fixed header#title-block-header .quarto-title-banner.page-columns.page-full {
+  padding-top: 15px !important;
+  margin-top: 0 !important;
+}
+
+/* Override Quarto's code block nesting with maximum specificity */
+html body div.sourceCode {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 1px solid #dee2e6 !important;
+  border-left: 4px solid #007acc !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin: 20px 0 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+  position: relative !important;
+  overflow-x: auto !important;
+}
+
+html body div.sourceCode div.sourceCode,
+html body div.sourceCode pre.sourceCode,
+html body .sourceCode .sourceCode {
+  background: transparent !important;
+  border: none !important;
+  border-left: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+html body div.sourceCode > pre.sourceCode {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #212529 !important;
+}
+
+html body div.sourceCode > pre.sourceCode > code.sourceCode {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  display: block !important;
+}
+
+/* Force navbar positioning */
+html body.nav-fixed nav.navbar.navbar-expand-lg {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1030 !important;
+  background: var(--primary-color) !important;
+}
+
+/* ==============================================
+   ADDITIONAL LAYOUT IMPROVEMENTS - ENHANCED
+   ============================================== */
+
+/* Ensure body has proper background */
+body {
+  background: var(--background-color) !important;
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+
+/* Container improvements for all Quarto themes */
+main.content,
+.quarto-container,
+#quarto-document-content {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+/* Fix for specific Quarto layout classes */
+.column-body-outset,
+.column-page-inset,
+.column-page,
+.column-screen,
+.column-margin {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Better spacing for lists and paragraphs */
+p, ul, ol {
+  max-width: 100% !important;
+  margin-bottom: 1.2em !important;
+}
+
+/* Improve table layout */
+table {
+  width: 100% !important;
+  margin: 1.5em 0 !important;
+  border-collapse: collapse !important;
+}
+
+table th,
+table td {
+  padding: 12px 15px !important;
+  border: 1px solid #e9ecef !important;
+  background: #f8f9fa !important;
+}
+
+table th {
+  background: #e9ecef !important;
+  font-weight: 600 !important;
+  color: #495057 !important;
+}
+
+/* Blockquote styling */
+blockquote {
+  border-left: 4px solid #007acc !important;
+  background: #f8f9fa !important;
+  padding: 15px 20px !important;
+  margin: 1.5em 0 !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+blockquote p {
+  margin-bottom: 0 !important;
+  color: #495057 !important;
+  font-style: italic !important;
+}

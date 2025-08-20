@@ -1,0 +1,280 @@
+---
+title: ""
+subtitle: ""
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  sort-ui: false
+  filter-ui: false
+  max-items: 6
+page-layout: full
+title-block-banner: false
+css: 
+  - assets/css/home.css
+format:
+  html:
+    include-in-header: 
+      - text: |
+          <style>
+          body { margin: 0; padding: 0; }
+          .quarto-title-block { display: none !important; }
+          .quarto-listing { display: none !important; }
+          /* Force styling to override Quarto defaults */
+          .hero-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+            padding: 4rem 2rem !important;
+            color: white !important;
+            text-align: center !important;
+            position: relative !important;
+            overflow: hidden !important;
+          }
+          .hero-title {
+            font-size: 3.5rem !important;
+            font-weight: 800 !important;
+            margin-bottom: 1.5rem !important;
+            color: #fff !important;
+            line-height: 1.2 !important;
+          }
+          .hero-subtitle {
+            font-size: 1.4rem !important;
+            font-weight: 600 !important;
+            color: #e94560 !important;
+            margin-bottom: 2rem !important;
+          }
+          .hero-description {
+            font-size: 1.2rem !important;
+            line-height: 1.7 !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            margin-bottom: 3rem !important;
+          }
+          .features-section {
+            padding: 5rem 2rem !important;
+            background: #f8fafc !important;
+          }
+          .section-title {
+            text-align: center !important;
+            font-size: 3rem !important;
+            font-weight: 700 !important;
+            color: #1a1a2e !important;
+            margin-bottom: 4rem !important;
+          }
+          </style>
+---
+
+::: {.hero-section}
+::: {.hero-content}
+
+# SecureFlow
+
+**Empowering Security Engineers with Deep Technical Insights**
+
+Dive deep into application security, penetration testing, ethical hacking, and modern cybersecurity engineering. From vulnerability research to secure architecture design, we explore the cutting-edge of digital security.
+
+::: {.hero-cta}
+[Explore Latest Posts](posts/){.btn-hero .btn-hero-primary}
+[Security Topics](pages/blogs/monthly/){.btn-hero .btn-hero-secondary}
+:::
+
+:::
+:::
+
+::: {.features-section}
+
+## Core Security Domains
+
+::: {.features-grid}
+
+::: {.feature-card}
+::: {.feature-icon}
+🛡️
+:::
+
+### Application Security Engineering
+
+Secure development lifecycle, threat modeling, and application architecture security. Building security into every layer of software development.
+
+::: {.feature-topics}
+<span class="topic-tag">SAST</span> <span class="topic-tag">DAST</span> <span class="topic-tag">Threat Modeling</span> <span class="topic-tag">Secure Code Review</span>
+:::
+:::
+
+::: {.feature-card}
+::: {.feature-icon}
+🌐
+:::
+
+### Web Application Security
+
+OWASP Top 10, advanced web vulnerabilities, and modern web security patterns. From XSS to advanced authentication bypasses.
+
+::: {.feature-topics}
+<span class="topic-tag">OWASP</span> <span class="topic-tag">XSS</span> <span class="topic-tag">SQL Injection</span> <span class="topic-tag">Authentication</span>
+:::
+:::
+
+::: {.feature-card}
+::: {.feature-icon}
+🔍
+:::
+
+### Penetration Testing
+
+Methodical security assessment, exploit development, and red team operations. Advanced techniques for comprehensive security evaluation.
+
+::: {.feature-topics}
+<span class="topic-tag">OSCP</span> <span class="topic-tag">Red Team</span> <span class="topic-tag">Exploit Dev</span> <span class="topic-tag">Post-Exploitation</span>
+:::
+:::
+
+::: {.feature-card}
+::: {.feature-icon}
+🎯
+:::
+
+### Ethical Hacking & Bug Bounty
+
+Responsible disclosure, bug bounty methodologies, and vulnerability research. Building skills for the next generation of security researchers.
+
+::: {.feature-topics}
+<span class="topic-tag">Bug Bounty</span> <span class="topic-tag">CVE Research</span> <span class="topic-tag">Responsible Disclosure</span> <span class="topic-tag">0-day</span>
+:::
+:::
+
+::: {.feature-card}
+::: {.feature-icon}
+☁️
+:::
+
+### Cloud Security Architecture
+
+Multi-cloud security, container security, and serverless security patterns. Securing modern cloud-native applications and infrastructure.
+
+::: {.feature-topics}
+<span class="topic-tag">AWS Security</span> <span class="topic-tag">Azure Security</span> <span class="topic-tag">Container Security</span> <span class="topic-tag">IAM</span>
+:::
+:::
+
+::: {.feature-card}
+::: {.feature-icon}
+🔧
+:::
+
+### DevSecOps & Automation
+
+Security as code, CI/CD security integration, and automated security testing. Building security into the development pipeline.
+
+::: {.feature-topics}
+<span class="topic-tag">CI/CD Security</span> <span class="topic-tag">Infrastructure as Code</span> <span class="topic-tag">Security Automation</span> <span class="topic-tag">SIEM</span>
+:::
+:::
+
+:::
+:::
+
+::: {.value-proposition}
+::: {.value-content}
+
+## Why Choose SecureFlow?
+
+::: {.value-grid}
+
+::: {.value-item}
+::: {.value-icon}
+🎓
+:::
+
+### Expert-Led Content
+
+Learn from industry professionals with real-world experience in cybersecurity and penetration testing.
+:::
+
+::: {.value-item}
+::: {.value-icon}
+🔬
+:::
+
+### Hands-On Labs
+
+Practice with real scenarios, code samples, and step-by-step tutorials that you can implement immediately.
+:::
+
+::: {.value-item}
+::: {.value-icon}
+🚀
+:::
+
+### Latest Techniques
+
+Stay ahead with cutting-edge security research, emerging threats, and next-generation defense strategies.
+:::
+
+::: {.value-item}
+::: {.value-icon}
+🌟
+:::
+
+### Career Growth
+
+Build the skills needed for certifications, career advancement, and leadership roles in cybersecurity.
+:::
+
+:::
+:::
+:::
+
+::: {.recent-posts}
+
+## Latest Security Research
+
+::: {.posts-grid}
+
+::: {.post-card}
+::: {.post-image}
+🌐
+:::
+::: {.post-content}
+<p class="post-date">January 15, 2024</p>
+
+### Deep Dive into TCP Three-Way Handshake
+
+Understanding the foundation of reliable network communication and its security implications with practical examples and visualizations.
+
+[Read More →](posts/2024/january/tcp-handshake-deep-dive.qmd){.read-more}
+:::
+:::
+
+::: {.post-card}
+::: {.post-image}
+🐍
+:::
+::: {.post-content}
+<p class="post-date">January 10, 2024</p>
+
+### Python for Cybersecurity: Essential Code Examples
+
+Practical Python scripts every security professional should know including network scanning, log analysis, and security automation.
+
+[Read More →](posts/post-with-code/){.read-more}
+:::
+:::
+
+::: {.post-card}
+::: {.post-image}
+🚀
+:::
+::: {.post-content}
+<p class="post-date">January 1, 2024</p>
+
+### Welcome to SecureFlow
+
+Your journey into cybersecurity excellence begins here - comprehensive platform for cybersecurity professionals and enthusiasts.
+
+[Read More →](posts/welcome/){.read-more}
+:::
+:::
+
+:::
+:::
+

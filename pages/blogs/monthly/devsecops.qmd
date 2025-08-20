@@ -1,0 +1,22 @@
+---
+title: "DevSecOps Implementation"
+description: "Integrating security into DevOps pipelines"
+date: "2024-06-01"
+categories: [devsecops, ci-cd, automation, security-testing]
+image: "devsecops-banner.jpg"
+---
+
+# DevSecOps Implementation
+
+Coming soon - Practical guide to implementing security in DevOps workflows and CI/CD pipelines.
+
+## Topics to Cover
+
+- Security as Code Principles
+- Automated Security Testing
+- Container Security in CI/CD
+- Infrastructure as Code Security
+- Security Gates and Quality Metrics
+- Tool Integration and Orchestration
+
+*This post is part of our monthly deep-dive series on security topics.*

@@ -1,0 +1,22 @@
+---
+title: "Cloud Security Architecture"
+description: "Designing secure cloud infrastructure and services"
+date: "2024-05-01"
+categories: [cloud-security, architecture, aws, azure]
+image: "cloud-security-banner.jpg"
+---
+
+# Cloud Security Architecture
+
+Coming soon - Comprehensive guide to designing secure cloud architectures across major platforms.
+
+## Topics to Cover
+
+- Cloud Security Models (Shared Responsibility)
+- Identity and Access Management (IAM)
+- Network Security in the Cloud
+- Data Encryption and Key Management
+- Container and Serverless Security
+- Multi-Cloud Security Strategies
+
+*This post is part of our monthly deep-dive series on security topics.*

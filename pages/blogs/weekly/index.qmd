@@ -1,0 +1,31 @@
+---
+title: "Weekly Security Updates"
+subtitle: "Current security trends and weekly insights"
+listing:
+  contents: "."
+  sort: "date desc"
+  type: table
+  categories: true
+  sort-ui: true
+  filter-ui: true
+  page-size: 20
+  fields: [date, title, description, categories]
+---
+
+# Weekly Security Updates
+
+Stay current with the latest security trends, vulnerability disclosures, and industry developments. Updated every week with practical insights and actionable intelligence.
+
+## What You'll Find Here
+
+- **Vulnerability Analysis**: Deep dives into recent CVEs and their impact
+- **Industry News**: Security industry developments and trends
+- **Tool Reviews**: Analysis of new security tools and techniques
+- **Case Studies**: Real-world security incidents and lessons learned
+- **Quick Tips**: Practical security advice for immediate implementation
+
+## Current Focus Areas
+
+Our weekly posts cover emerging threats, new attack vectors, defensive strategies, and the evolving cybersecurity landscape.
+
+Browse all weekly updates below:
