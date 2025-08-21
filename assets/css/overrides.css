@@ -1,0 +1,86 @@
+/* overrides.css - Final targeted overrides for Posts page */
+
+/* 1. Header: ensure title block sits below fixed navbar */
+.quarto-title-block#title-block-header,
+.quarto-title-banner {
+  margin-top: 4rem !important;
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+/* 2. Sidebar category pills styling */
+#quarto-margin-sidebar .quarto-listing-category .category {
+  padding: 0.3em 0.6em !important;
+  font-size: 0.85em !important;
+  border-radius: 1rem !important;
+  background-color: #e83f5b !important;
+  color: #fff !important;
+  margin: 0.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  text-transform: capitalize !important;
+  white-space: nowrap !important;
+}
+
+/* 3. Filter/Sort controls container rounding and styling */
+#listing-listing .listing-actions-group {
+  border-radius: 1rem !important;
+  overflow: visible !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+#listing-listing .listing-actions-group .input-group {
+  border-radius: 0 !important;
+}
+#listing-listing .listing-actions-group select.form-select {
+  appearance: none !important;
+  background: #fff url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23666' width='12' height='12'%3E%3Cpath d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 1rem center !important;
+  padding-right: 2rem !important;
+  border: 2px solid rgba(26, 26, 46, 0.1) !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+#listing-listing .listing-actions-group select.form-select:hover {
+  border-color: #e94560 !important;
+  box-shadow: 0 2px 8px rgba(233, 69, 96, 0.15) !important;
+}
+
+#listing-listing .listing-actions-group select.form-select:focus {
+  border-color: #e94560 !important;
+  box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.25) !important;
+  outline: none !important;
+}
+
+/* Modern dropdown options for overrides */
+#listing-listing .listing-actions-group select.form-select option {
+  background: white !important;
+  color: #1a1a2e !important;
+  padding: 0.75rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+#listing-listing .listing-actions-group select.form-select option:checked {
+  background: #1a1a2e !important;
+  color: white !important;
+}
+
+/* 4. Post cards styling */
+#listing-listing .quarto-post {
+  border-radius: 1rem !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  margin-bottom: 1.5rem !important;
+  overflow: hidden !important;
+}
+#listing-listing .quarto-post:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+}
+#listing-listing .quarto-post .thumbnail img {
+  transition: transform 0.3s ease !important;
+}
+#listing-listing .quarto-post:hover .thumbnail img {
+  transform: scale(1.05) !important;
+}

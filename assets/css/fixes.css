@@ -1,0 +1,85 @@
+/* assets/css/fixes.css */
+
+/* Root element for listing page fixes */
+#listing-listing {
+  display: block !important;
+}
+
+/* 1. Header overlap fix */
+body.nav-fixed #title-block-header {
+  margin-top: 4rem !important; /* push content below fixed navbar */
+}
+
+/* 2. Sidebar category pills */
+.quarto-listing-category .category {
+  padding: 0.3em 0.6em !important;
+  font-size: 0.8em !important;
+  margin: 4px !important;
+  display: inline-block !important;
+  border-radius: 1rem !important;
+  background-color: #f8f9fa !important;
+  border: 1px solid #ddd !important;
+  color: #333 !important;
+}
+
+/* 3. Listing category pills */
+.quarto-post .listing-category {
+  background-color: #f8f9fa !important;
+  color: #333 !important;
+  padding: .2em .6em !important;
+  border-radius: .5rem !important;
+  font-size: .75em !important;
+  margin-right: .5em !important;
+}
+
+/* 4. Filter/Sort controls container */
+#listing-listing .listing-actions-group {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  display: flex !important;
+  background-color: #fff !important;
+  border: 1px solid #ddd !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+  margin-bottom: 2rem !important;
+}
+#listing-listing .listing-actions-group .form-select,
+#listing-listing .listing-actions-group .form-control {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove default dropdown arrow in IE */
+#listing-listing .listing-actions-group select::-ms-expand {
+  display: none !important;
+}
+
+/* 5. Modern dropdown styling */
+#listing-listing .listing-actions-group select.form-select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-position: right 1rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 12px !important;
+  padding-right: 2rem !important;
+}
+
+/* 6. Post cards styling */
+.quarto-listing .quarto-post {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 1rem !important;
+  transition: transform .3s ease, box-shadow .3s ease !important;
+  overflow: hidden !important;
+  background-color: #fff !important;
+  margin-bottom: 2rem !important;
+}
+.quarto-listing .quarto-post:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+.quarto-listing .quarto-post .thumbnail img {
+  transition: transform .5s ease !important;
+}
+.quarto-listing .quarto-post:hover .thumbnail img {
+  transform: scale(1.05) !important;
+}

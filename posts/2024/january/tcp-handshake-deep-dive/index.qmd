@@ -5,7 +5,6 @@ date: "2024-01-15"
 categories: [networking, security, tcp, protocols]
 author: "Yugesh Mekala"
 description: "A comprehensive guide to TCP handshake process, security implications, and advanced attack vectors with practical examples and visualizations"
-image: "tcp-handshake-header.png"
 title-block-banner: true
 format:
   html:

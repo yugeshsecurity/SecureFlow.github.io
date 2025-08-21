@@ -1,9 +1,12 @@
 /* Modern Home Page Styles for SecureFlow */
 
-/* Reset and hide Quarto elements */
-.quarto-title-block,
-.quarto-listing,
-#title-block-header {
+/* Reset and hide Quarto elements - ONLY on home page */
+body[data-page="home"] .quarto-title-block,
+body[data-page="home"] .quarto-listing,
+body[data-page="home"] #title-block-header,
+.home-page .quarto-title-block,
+.home-page .quarto-listing,
+.home-page #title-block-header {
   display: none !important;
 }
 
@@ -47,21 +50,49 @@ h1.hero-title,
 
 /* Hero subtitle */
 .hero-section p:first-of-type strong,
+.hero-section .hero-content p:first-of-type strong {
+  font-size: 1.6rem !important;
+  font-weight: 700 !important;
+  color: #e94560 !important;
+  margin-bottom: 1rem !important;
+  display: block !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Main tagline - "Where Code Meets Defense" */
 .hero-section .hero-content p:first-of-type {
   font-size: 1.4rem !important;
   font-weight: 600 !important;
   color: #e94560 !important;
-  margin-bottom: 2rem !important;
+  margin-bottom: 1.5rem !important;
   display: block !important;
+  letter-spacing: 0.5px !important;
 }
 
 /* Hero description */
 .hero-section p:nth-of-type(2),
-.hero-content p:not(:first-of-type) {
+.hero-content p:nth-of-type(2) {
   font-size: 1.2rem !important;
   line-height: 1.7 !important;
   color: rgba(255, 255, 255, 0.9) !important;
-  margin-bottom: 3rem !important;
+  margin-bottom: 2rem !important;
+}
+
+/* Weekly posting message - italic text */
+.hero-section em,
+.hero-content em {
+  font-size: 1.1rem !important;
+  font-style: italic !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  display: block !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 2.5rem !important;
+  padding: 1rem 2rem !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  border-left: 4px solid #e94560 !important;
+  backdrop-filter: blur(10px) !important;
+  line-height: 1.6 !important;
 }
 
 /* Hero CTA buttons */
@@ -203,6 +234,10 @@ h2.section-title::after {
   flex-wrap: wrap !important;
   gap: 0.75rem !important;
   justify-content: center !important;
+  margin-top: 1rem !important;
+  padding: 1rem 0 !important;
+  min-height: auto !important;
+  overflow: visible !important;
 }
 
 .topic-tag {
@@ -215,6 +250,10 @@ h2.section-title::after {
   border: 1px solid rgba(233, 69, 96, 0.2) !important;
   transition: all 0.3s ease !important;
   text-decoration: none !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  line-height: 1.2 !important;
 }
 
 .topic-tag:hover {

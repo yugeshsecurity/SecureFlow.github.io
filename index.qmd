@@ -67,10 +67,13 @@ format:
 ::: {.hero-content}
 
 # SecureFlow
+**Where Code Meets Defense**
 
 **Empowering Security Engineers with Deep Technical Insights**
 
 Dive deep into application security, penetration testing, ethical hacking, and modern cybersecurity engineering. From vulnerability research to secure architecture design, we explore the cutting-edge of digital security.
+
+*It's not just about breaking things; it's about building them stronger. Join us for a new post on security every week.*
 
 ::: {.hero-cta}
 [Explore Latest Posts](posts/){.btn-hero .btn-hero-primary}

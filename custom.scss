@@ -24,6 +24,9 @@ $navbar-dark-brand-hover-color: #e94560;
 $link-color: $accent;
 $link-hover-color: darken($accent, 10%);
 
+// CRITICAL: Fix navbar overlap with content
+$content-padding-top: 4rem;
+
 /*-- scss:rules --*/
 
 // Custom navbar enhancements

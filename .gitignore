@@ -1,5 +1,6 @@
 # Quarto build output
 _site/
+docs/
 .quarto/*
 
 # Python cache and environment
@@ -34,11 +35,16 @@ node_modules/
 *.swp
 *.swo
 
-# Do not commit images generated for previews
-*.svg
-*.png
-*.jpg
-*.jpeg
+# Allow images that are part of the site content
+!assets/**/*.svg
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.jpeg
+!posts/**/*.jpg
+!posts/**/*.png
+!posts/**/*.jpeg
 
 # Do not commit test or scratch files
 posts/test-listing.qmd
+
+/.quarto/

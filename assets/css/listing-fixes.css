@@ -1,0 +1,355 @@
+/* CRITICAL FIXES FOR POSTS PAGE */
+
+/* 1. Fix header going under navbar */
+header#title-block-header.quarto-title-block.default.page-columns.page-full {
+  margin-top: 4rem !important;  /* push the posts title below the fixed navbar */
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 2. Fix filter/sort controls styling and rounded corners */
+/* 3. Filter/Sort controls styling */
+#listing-listing > .listing-actions-group,
+.quarto-listing-container-default > .listing-actions-group {
+  background: white !important;
+  padding: 1.5rem !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 6px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 2rem !important;
+  display: flex !important;
+  gap: 1.5rem !important;
+  align-items: stretch !important;
+  flex-wrap: nowrap !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+  max-width: 1000px !important;
+  margin: 0 auto 2rem auto !important;  /* center and add bottom space */
+}
+/* Prevent inner input-group rounding clipping */
+.listing-actions-group .input-group {
+  border-radius: 0 !important;
+}
+
+.quarto-listing-sort,
+.quarto-listing-filter {
+  flex: 1 !important;
+  min-width: 200px !important;
+}
+
+.input-group,
+.input-group-sm {
+  display: flex !important;
+  width: 100% !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.form-select,
+.form-control {
+  border: none !important;
+  padding: 0.8rem 1.2rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  background: #f8f9fa !important;
+  color: var(--primary-color) !important;
+  flex: 1 !important;
+  border-radius: 0 12px 12px 0 !important;
+  outline: none !important;
+}
+
+.input-group-text {
+  background: var(--primary-color) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 0.8rem 1rem !important;
+  font-size: 0.9rem !important;
+  min-width: 55px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px 0 0 12px !important;
+}
+
+/* 3. Fix categories spacing in sidebar */
+.quarto-listing-category-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--primary-color) !important;
+  margin-bottom: 1rem !important;
+  text-align: center !important;
+}
+
+/* 2. Sidebar category pills styling */
+#quarto-margin-sidebar .quarto-listing-category {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.4rem !important;
+  justify-content: center !important;
+  margin-bottom: 1.5rem !important;
+  max-width: 1000px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 1rem !important;
+  background: white !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 6px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Common category pill styling */
+#quarto-margin-sidebar .category,
+.quarto-listing-container-default .listing-category {
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), rgba(233, 69, 96, 0.05)) !important;
+  color: var(--accent-color) !important;
+  padding: 0.5rem 0.8rem !important;
+  border-radius: 20px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  border: 2px solid rgba(233, 69, 96, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  cursor: pointer !important;
+  text-transform: capitalize !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  white-space: nowrap !important;
+  min-height: 32px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 4. Fix post card category spacing */
+.quarto-post .listing-categories {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.3rem !important;
+  margin-bottom: 0.8rem !important;
+}
+
+.quarto-post .listing-category {
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), rgba(233, 69, 96, 0.05)) !important;
+  color: var(--accent-color) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 12px !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(233, 69, 96, 0.2) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  text-transform: capitalize !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+}
+
+/* 5. Enhanced dropdown options styling */
+.form-select option {
+  background: white !important;
+  color: var(--primary-color) !important;
+  padding: 0.8rem !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+.form-select option:checked {
+  background: var(--accent-color) !important;
+  color: white !important;
+}
+/* === FINAL OVERRIDES FOR POSTS PAGE === */
+/* 1. Ensure page header sits below fixed navbar */
+header#title-block-header.quarto-title-block.default.page-columns.page-full {
+  margin-top: calc(4rem + 1rem) !important; /* account for navbar height and extra spacing */
+  position: relative !important;
+  z-index: 100 !important;
+}
+/* 2. Sidebar category pills */
+.quarto-listing-category.category-default .category {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.85rem !important;
+  margin: 0.2rem !important;
+  border-radius: 0.75rem !important;
+  background-color: #e83f5b !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+#quarto-margin-sidebar .quarto-listing-category.category-default .category {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.85rem !important;
+  margin: 0.3rem !important;
+  border-radius: 1rem !important;
+  background-color: #e83f5b !important;
+  color: #fff !important;
+  border: none !important;
+}
+/* 3. Listing category pills inside post cards */
+.quarto-post .listing-category {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.75rem !important;
+  margin: 0.2rem !important;
+  border-radius: 0.75rem !important;
+  background-color: #e83f5b !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+#listing-listing .quarto-post .listing-category {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.75rem !important;
+  margin: 0.2rem !important;
+  border-radius: 0.75rem !important;
+  background-color: #e83f5b !important;
+  color: #fff !important;
+  border: none !important;
+}
+/* 4. Filter/Sort controls container rounding */
+.listing-actions-group {
+  background: #fff !important;
+  border-radius: 0.75rem !important;
+  overflow: visible !important;
+  border: none !important;
+}
+.listing-actions-group .input-group {
+  border-radius: 0 !important;
+}
+#listing-listing > .listing-actions-group,
+.quarto-listing-container-default > .listing-actions-group {
+  background: #fff !important;
+  border-radius: 1rem !important;
+  overflow: visible !important;
+  border: none !important;
+  margin: 0 auto 1.5rem auto !important;
+}
+#listing-listing > .listing-actions-group .input-group.input-group-sm {
+  border-radius: 0 !important;
+}
+/* 5. Modern dropdown arrow */
+.listing-actions-group select.form-select {
+  appearance: none !important;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23333' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 1rem center !important;
+  background-size: 12px !important;
+  padding-right: 1.5rem !important;
+}
+select#listing-listing-sort.form-select {
+  appearance: none !important;
+  background: #fff url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23666' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 1rem center !important;
+  background-size: 12px !important;
+  padding-right: 2rem !important;
+}
+/* 6. Post card styling */
+.quarto-listing .quarto-post {
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  overflow: hidden !important;
+}
+.quarto-listing .quarto-post:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
+.quarto-listing .quarto-post .thumbnail img {
+  transition: transform 0.5s ease !important;
+}
+.quarto-listing .quarto-post:hover .thumbnail img {
+  transform: scale(1.05) !important;
+}
+#listing-listing .quarto-post {
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  margin-bottom: 1.5rem !important;
+}
+#listing-listing .quarto-post:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+}
+#listing-listing .quarto-post .thumbnail img {
+  transition: transform 0.5s ease !important;
+}
+#listing-listing .quarto-post:hover .thumbnail img {
+  transform: scale(1.05) !important;
+}
+/* Additional high-specificity overrides to force fixes */
+/* Header below navigation bar */
+header#title-block-header {
+  margin-top: 100px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+/* Sidebar category pills overflow fix */
+#quarto-margin-sidebar {
+  overflow: visible !important;
+}
+#quarto-margin-sidebar .quarto-listing-category {
+  overflow: visible !important;
+}
+/* Filter/Sort controls rounding fix */
+#listing-listing .listing-actions-group {
+  border-radius: 50px !important;
+  overflow: visible !important;
+}
+#listing-listing .listing-actions-group .input-group {
+  border-radius: 50px !important;
+  overflow: hidden !important;
+}
+/* Dropdown arrow and appearance fix */
+#listing-listing .listing-actions-group select.form-select {
+  background: #fff url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path fill='%23333' d='M2 4l4 4 4-4z'/></svg>") no-repeat right 1rem center !important;
+  -moz-appearance: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+/* Modern post card styles override */
+/* Root-level overrides for Posts page */
+/* 1. Ensure header is fully below navbar */
+header#title-block-header.quarto-title-block.default.page-columns.page-full {
+  margin-top: 4rem !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 2. Sidebar category pills (exact targeting) */
+#quarto-margin-sidebar .quarto-listing-category.category-default .category {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.85rem !important;
+  border-radius: 1rem !important;
+  background-color: #e83f5b !important;
+  color: #ffffff !important;
+  margin: 0.3rem !important;
+}
+
+/* 3. Filter/Sort controls container */
+#listing-listing > .listing-actions-group,
+.quarto-listing-container-default > .listing-actions-group {
+  border-radius: 1rem !important;
+  overflow: visible !important;
+}
+#listing-listing > .listing-actions-group .input-group.input-group-sm {
+  border-radius: 0 !important; /* remove inner rounding to avoid clipping */
+}
+#listing-listing > .listing-actions-group select.form-select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23333' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E") no-repeat right 1rem center !important;
+  background-size: 12px !important;
+  padding-right: 2rem !important;
+}
+
+/* 4. Post cards precise override */
+#listing-listing .quarto-post {
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  margin-bottom: 2rem !important;
+}
+#listing-listing .quarto-post:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
+#listing-listing .quarto-post .thumbnail img {
+  transition: transform 0.5s ease !important;
+}
+#listing-listing .quarto-post:hover .thumbnail img {
+  transform: scale(1.05) !important;
+}

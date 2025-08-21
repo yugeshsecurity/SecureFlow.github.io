@@ -1,8 +1,10 @@
 project:
   type: website
+  output-dir: docs
 
 website:
   title: "SecureFlow"
+  description: "Where Code Meets Defense"
   navbar:
     logo: "assets/logo/secureflow-logo.svg"
     title: "SecureFlow"
@@ -37,26 +39,29 @@ website:
       - text: "About"
         href: pages/about/index.qmd
       - icon: github
-        href: https://github.com/
+        href: https://github.com/yugeshsecurity
         aria-label: "GitHub"
       - icon: linkedin
-        href: https://linkedin.com/
+        href: https://www.linkedin.com/in/yugesh-mekala-52717b257
         aria-label: "LinkedIn"
       - icon: rss
         href: index.xml
         aria-label: "RSS Feed"
   page-footer:
     left: |
-      **SecureFlow** - Empowering Security Engineers  
+      **SecureFlow** - Where Code Meets Defense  
+      
+      Created by **Yugesh Mekala**  
+      
       © 2025 SecureFlow. All rights reserved.
     center: |
       [Privacy Policy](privacy.html) • [Terms of Service](terms.html) • [Contact](contact.html)
     right:
       - icon: github
-        href: https://github.com/
+        href: https://github.com/yugeshsecurity
         aria-label: "GitHub"
       - icon: linkedin
-        href: https://linkedin.com/
+        href: https://www.linkedin.com/in/yugesh-mekala-52717b257
         aria-label: "LinkedIn"
       - icon: twitter
         href: https://twitter.com/
