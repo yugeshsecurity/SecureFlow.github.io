@@ -1,0 +1,423 @@
+/* About Page Animations - SecureFlow */
+
+/* ==============================================
+   SIMPLE NAME DISPLAY - NO COMPLEX ANIMATIONS
+   ============================================== */
+
+/* Remove the ugly YM circle completely */
+.profile-avatar {
+  display: none !important;
+}
+
+/* Profile Name Styling - Override inline styles with high specificity */
+.profile-content h1.profile-name,
+.profile-hero .profile-content h1.profile-name,
+h1.profile-name {
+  font-family: 'Courier New', monospace !important;
+  color: #ffffff !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 10px 0 !important;
+  text-align: center !important;
+  display: block !important;
+  width: 100% !important;
+  text-transform: none !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
+}
+
+/* Also target by class selector with high specificity */
+.profile-hero .profile-content .profile-name,
+.profile-content .profile-name,
+.profile-name {
+  font-family: 'Courier New', monospace !important;
+  color: #ffffff !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin: 0 0 10px 0 !important;
+  text-align: center !important;
+  display: block !important;
+  width: 100% !important;
+  text-transform: none !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
+}
+
+/* Ensure all text in hero section is visible */
+.profile-hero * {
+  color: #ffffff !important;
+}
+
+.profile-hero p,
+.profile-hero strong,
+.profile-title,
+.profile-tagline {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+}
+
+/* Remove any animation attempts */
+.profile-name::after,
+.profile-name::before,
+h1.profile-name::after,
+h1.profile-name::before {
+  display: none !important;
+}
+
+/* Remove any animation attempts */
+.profile-name::after,
+.profile-name::before {
+  display: none !important;
+}
+
+.profile-title {
+  opacity: 1;
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin: 0 0 20px 0;
+  text-align: center !important;
+  color: #ffffff !important;
+}
+
+.profile-tagline {
+  opacity: 1;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
+  text-align: center !important;
+  color: #ffffff !important;
+}
+
+/* Additional specific selectors for text visibility */
+.profile-hero h2.profile-title.anchored,
+.profile-hero .profile-tagline p,
+.profile-hero p,
+.profile-hero strong {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Override any Quarto default styles that may be interfering */
+.profile-hero section.level2.profile-title h2.profile-title.anchored,
+.profile-hero section.level2.profile-title p,
+.profile-hero section.level2.profile-title strong,
+.profile-hero .profile-tagline,
+.profile-hero .profile-tagline p {
+  color: white !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Fix text visibility in profile content */
+.profile-hero .profile-content {
+  color: #ffffff !important;
+}
+
+.profile-hero .profile-content h2,
+.profile-hero .profile-content .profile-title {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.profile-hero .profile-content .profile-tagline,
+.profile-hero .profile-content div {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.profile-hero .profile-content p,
+.profile-hero .profile-content strong {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Simple fade in animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Epic Bubble Blast Animation */
+@keyframes bubbleBlastEntry {
+  0% {
+    transform: translateY(-500px) scale(0.1);
+    opacity: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(233, 69, 96, 0);
+  }
+  
+  30% {
+    transform: translateY(-50px) scale(0.8);
+    opacity: 0.9;
+    border-radius: 45%;
+  }
+  
+  50% {
+    transform: translateY(0) scale(2.5);
+    opacity: 1;
+    border-radius: 30%;
+    box-shadow: 
+      0 0 0 20px rgba(233, 69, 96, 0.3),
+      0 0 0 40px rgba(233, 69, 96, 0.2),
+      0 0 0 60px rgba(233, 69, 96, 0.1);
+  }
+  
+  65% {
+    transform: translateY(0) scale(0.6);
+    border-radius: 55%;
+    box-shadow: 
+      0 0 0 10px rgba(233, 69, 96, 0.2),
+      0 0 0 20px rgba(233, 69, 96, 0.1);
+  }
+  
+  80% {
+    transform: translateY(0) scale(1.2);
+    border-radius: 48%;
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+  }
+  
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    border-radius: 50%;
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.2);
+  }
+}
+
+/* Spectacular Name Reveal with Burst Effect */
+@keyframes nameRevealBurst {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.5);
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.1);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Drop trail animation */
+@keyframes dropTrail {
+  0% {
+    height: 0px;
+    opacity: 0;
+  }
+  30% {
+    height: 150px;
+    opacity: 0.8;
+  }
+  70% {
+    height: 200px;
+    opacity: 0.6;
+  }
+  100% {
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+/* Enhanced Name reveal animation */
+@keyframes nameReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Hover effect for avatar */
+.profile-avatar:hover {
+  animation: bubbleBounce 0.6s ease-in-out;
+  box-shadow: 0 0 30px rgba(233, 69, 96, 0.4);
+}
+
+@keyframes bubbleBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ==============================================
+   SPECIALIZATION CARDS ANIMATIONS
+   ============================================== */
+
+.specialization-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+}
+
+.spec-item {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: cardSlideIn 0.6s ease-out forwards;
+}
+
+/* Staggered animation delays for cards */
+.spec-item:nth-child(1) { animation-delay: 0.1s; }
+.spec-item:nth-child(2) { animation-delay: 0.2s; }
+.spec-item:nth-child(3) { animation-delay: 0.3s; }
+.spec-item:nth-child(4) { animation-delay: 0.4s; }
+.spec-item:nth-child(5) { animation-delay: 0.5s; }
+.spec-item:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced card hover animations */
+.spec-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spec-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-color), #f27c00);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+  border-radius: 16px 16px 0 0;
+}
+
+.spec-item:hover::before {
+  transform: scaleX(1);
+}
+
+/* ==============================================
+   SECTION REVEAL ANIMATIONS
+   ============================================== */
+
+.section {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: sectionReveal 0.8s ease-out forwards;
+}
+
+.section:nth-child(1) { animation-delay: 0.2s; }
+.section:nth-child(2) { animation-delay: 0.4s; }
+.section:nth-child(3) { animation-delay: 0.6s; }
+.section:nth-child(4) { animation-delay: 0.8s; }
+.section:nth-child(5) { animation-delay: 1.0s; }
+.section:nth-child(6) { animation-delay: 1.2s; }
+
+@keyframes sectionReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==============================================
+   BUTTON ANIMATIONS
+   ============================================== */
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ==============================================
+   RESPONSIVE ANIMATIONS
+   ============================================== */
+
+@media (max-width: 768px) {
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+  }
+  
+  .specialization-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .spec-item:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+/* ==============================================
+   LOADING ANIMATION FOR SLOW CONNECTIONS
+   ============================================== */
+
+.profile-hero {
+  animation: heroFadeIn 1s ease-out;
+}
+
+@keyframes heroFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

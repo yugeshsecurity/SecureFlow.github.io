@@ -1,6 +1,6 @@
 # Quarto build output
 _site/
-docs/
+#docs/
 .quarto/*
 
 # Python cache and environment

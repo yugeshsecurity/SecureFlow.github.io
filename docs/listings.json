@@ -1,0 +1,38 @@
+[
+  {
+    "listing": "/posts.html",
+    "items": [
+      "/posts/2024/january/tcp-handshake-deep-dive/index.html",
+      "/posts/post-with-code/index.html",
+      "/posts/welcome/index.html"
+    ]
+  },
+  {
+    "listing": "/pages/blogs/monthly/index.html",
+    "items": [
+      "/pages/blogs/monthly/incident-response.html",
+      "/pages/blogs/monthly/devsecops.html",
+      "/pages/blogs/monthly/cloud-security.html",
+      "/pages/blogs/monthly/ethical-hacking.html",
+      "/pages/blogs/monthly/pentesting.html",
+      "/pages/blogs/monthly/web-app-security.html",
+      "/pages/blogs/monthly/app-security.html"
+    ]
+  },
+  {
+    "listing": "/index.html",
+    "items": [
+      "/posts/2024/january/tcp-handshake-deep-dive/index.html",
+      "/posts/post-with-code/index.html",
+      "/posts/welcome/index.html"
+    ]
+  },
+  {
+    "listing": "/pages/blogs/weekly/index.html",
+    "items": [
+      "/pages/blogs/weekly/week-33-2025.html",
+      "/pages/blogs/weekly/week-02-2025.html",
+      "/pages/blogs/weekly/week-01-2025.html"
+    ]
+  }
+]
