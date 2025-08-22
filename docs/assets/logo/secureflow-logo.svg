@@ -1,7 +1,0 @@
-<!-- SecureFlow Logo SVG: Modern, security-inspired, creative -->
-<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="120" height="120" rx="24" fill="#1a1a2e"/>
-  <path d="M60 30C75 30 90 40 90 60C90 80 75 90 60 90C45 90 30 80 30 60C30 40 45 30 60 30Z" fill="#0f3460"/>
-  <path d="M60 45C68 45 75 50 75 60C75 70 68 75 60 75C52 75 45 70 45 60C45 50 52 45 60 45Z" fill="#e94560"/>
-  <text x="50%" y="105" text-anchor="middle" fill="#fff" font-size="18" font-family="Segoe UI, Arial, sans-serif">SF</text>
-</svg>
