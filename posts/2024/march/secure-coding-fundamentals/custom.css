@@ -1,0 +1,44 @@
+/*
+  Custom CSS for the "Secure Coding Fundamentals" post.
+*/
+
+/* Style for code blocks to make them stand out */
+pre {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 1.5em;
+}
+
+/* Add a subtle highlight for inline code */
+code {
+  background-color: rgba(27, 31, 35, 0.05);
+  border-radius: 3px;
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+}
+
+/* Example of a custom style for "insecure" vs "secure" examples */
+.example-container {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+.example-container h4 {
+  margin-top: 0;
+  border-bottom: 2px solid;
+  padding-bottom: 0.5em;
+}
+
+.insecure-example h4 {
+  border-color: #dc3545; /* Red for insecure */
+  color: #dc3545;
+}
+
+.secure-example h4 {
+  border-color: #28a745; /* Green for secure */
+  color: #28a745;
+}

@@ -1,0 +1,42 @@
+/*
+  Custom CSS for the "Software Composition Analysis (SCA)" post.
+*/
+
+/* A callout box for the Log4Shell case study */
+.case-study {
+  background-color: #f8d7da; /* Light red */
+  border: 1px solid #f5c6cb; /* Reddish border */
+  border-left: 6px solid #dc3545; /* Strong red left border */
+  padding: 20px;
+  margin: 2em 0;
+  border-radius: 5px;
+}
+
+.case-study-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #721c24; /* Dark red text */
+  margin-bottom: 0.5em;
+}
+
+/* Styling for the CI/CD integration section */
+.integration-point {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5em;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+}
+
+.integration-icon {
+  font-size: 2em;
+  margin-right: 15px;
+  color: #007bff;
+}
+
+/* Using simple text for icons for portability */
+.icon-ide::before { content: '💻'; }
+.icon-ci::before { content: '🚀'; }
+.icon-patch::before { content: '🤖'; }
+.icon-monitor::before { content: '👀'; }

@@ -1,0 +1,48 @@
+/*
+  Custom CSS for the "Introduction to DAST" post.
+*/
+
+/* Styling for the SAST vs DAST comparison table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  font-size: 0.9em;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+thead th {
+  background-color: #007bff;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Add some emphasis to the "black-box" and "white-box" terms */
+.box-type {
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.white-box {
+  background-color: #6c757d; /* Gray */
+}
+
+.black-box {
+  background-color: #343a40; /* Dark Gray */
+}

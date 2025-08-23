@@ -1,0 +1,82 @@
+---
+title: "Thinking Like an Attacker: An Introduction to Threat Modeling"
+author: "Jules"
+date: "2024-10-21"
+categories: [Application Security, DevSecOps, Threat Modeling, Secure Design]
+image: "image.jpg"
+---
+
+## Thinking Like an Attacker: An Introduction to Threat Modeling
+
+Throughout this series, we've explored how to find and fix vulnerabilities in our code, dependencies, and infrastructure. But what if we could prevent many of these flaws from ever being created in the first place? What if we could fix security bugs *before* writing a single line of code?
+
+This is the promise of **Threat Modeling**. It is the single most effective practice for finding and eliminating *design-level* security flaws.
+
+If SAST and DAST are about finding implementation bugs, threat modeling is about finding architectural bugs. It's the difference between finding a cracked brick in a wall versus realizing the building has no fire escapes.
+
+### What is Threat Modeling?
+
+Threat modeling is a structured, proactive exercise where you pause and ask a simple set of questions about the system you are building. It's a "whiteboard and conversation" activity, not a software tool. The goal is to understand your system, think through the ways it could be attacked, and design defenses against those attacks.
+
+The entire process can be framed by four key questions:
+1.  **What are we building?**
+2.  **What can go wrong?**
+3.  **What are we going to do about it?**
+4.  **Did we do a good job?**
+
+### Step 1: What are we building? (Data Flow Diagrams)
+
+You can't secure what you don't understand. The first step is to create a simple visual representation of your system. A **Data Flow Diagram (DFD)** is perfect for this. It has just a few simple components:
+
+*   **External Entities (Squares):** Users, mobile apps, other systems.
+*   **Processes (Circles):** Components of your system (e.g., "Web API," "Auth Service").
+*   **Data Stores (Parallel Lines):** Databases, caches, file storage.
+*   **Data Flows (Arrows):** Show how data moves between the other elements.
+*   **Trust Boundaries (Dotted Lines):** This is the most important part! A trust boundary is a line you draw anywhere the level of trust changes. The line between the public internet and your VPC is a trust boundary. The line between your application and a third-party payment processor is another.
+
+### Step 2: What can go wrong? (STRIDE)
+
+Once you have your DFD, you can systematically brainstorm threats. The **STRIDE** mnemonic, developed at Microsoft, is the industry standard for this. You go through each component and data flow in your diagram and ask how it could be subject to:
+
+*   **S**poofing: Illegitimately claiming an identity.
+    *   *Threat:* An attacker uses stolen credentials to log in as a victim.
+    *   *Defense:* Multi-factor authentication.
+*   **T**ampering: Unauthorized modification of data.
+    *   *Threat:* An attacker modifies the price of an item in an unencrypted API request.
+    *   *Defense:* Use digital signatures or MACs (Message Authentication Codes).
+*   **R**epudiation: Denying that an action was performed.
+    *   *Threat:* An admin user deletes critical records, and there's no log to prove who did it.
+    *   *Defense:* Implement comprehensive, tamper-resistant audit logs.
+*   **I**nformation Disclosure: Unauthorized access to data.
+    *   *Threat:* A database containing user PII is left unencrypted.
+    *   *Defense:* Implement encryption at rest and in transit.
+*   **D**enial of Service: Making the system unavailable.
+    *   *Threat:* An unauthenticated API endpoint is flooded with requests.
+    *   *Defense:* Implement rate limiting and throttling.
+*   **E**levation of Privilege: Gaining unauthorized permissions.
+    *   *Threat:* A regular user discovers they can access an administrative API endpoint.
+    *   *Defense:* Enforce strict, server-side authorization checks on every request.
+
+### Step 3: What are we going to do about it? (Mitigations)
+
+For every credible threat you identify, you need to decide on a mitigation. You can think of this as applying the security controls we've discussed throughout this series. To mitigate Spoofing, you need strong authentication. To mitigate Tampering, you need integrity controls. To mitigate Information Disclosure, you need confidentiality controls like encryption.
+
+You don't have to fix everything. Sometimes, a business may decide that the cost of fixing a low-risk threat is higher than the potential impact. This is a valid choice, but it must be a conscious, documented **risk acceptance**.
+
+### A Quick Example: Password Reset
+
+Let's threat model a password reset feature.
+*   **DFD:** A user (External Entity) interacts with the "Web App" (Process) which sends a reset token to the user's email. The token is stored in a "Cache" (Data Store).
+*   **STRIDE Analysis:**
+    *   **(D)oS:** Can an attacker request resets for thousands of users, spamming their inboxes? -> **Mitigation:** Rate limit the password reset request endpoint.
+    *   **(I)nformation Disclosure:** Does the reset URL leak the token via `Referer` headers? -> **Mitigation:** Use a one-time-use code that the user must enter, rather than a link with the token in the query parameter.
+    *   **(S)poofing:** Can an attacker hijack the process and reset another user's password? -> **Mitigation:** Ensure the reset token is sent *only* to the user's registered, verified email address.
+
+In just a few minutes, we've identified three key design-level security requirements for this feature.
+
+### Conclusion
+
+Threat modeling is the practice of thinking about security from the very beginning. It's a collaborative exercise that brings development, operations, and security together. By making it a regular part of your design process, you can prevent entire classes of vulnerabilities, saving time, money, and protecting your users. It's the ultimate "shift left."
+
+In our final post, we will look at some of the more complex and modern attacks that application security professionals are working to defend against.
+---

@@ -1,0 +1,9 @@
+/*
+  Custom CSS for the "Introduction to Application Security (AppSec)" post.
+  Add any post-specific styles here.
+*/
+h3 {
+  border-left: 3px solid #007bff;
+  padding-left: 10px;
+  margin-top: 2em;
+}

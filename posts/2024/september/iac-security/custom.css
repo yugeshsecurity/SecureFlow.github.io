@@ -1,0 +1,51 @@
+/*
+  Custom CSS for the "IaC Security" post.
+*/
+
+/* Styling for the insecure/secure code examples */
+.code-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 2em 0;
+}
+
+.code-block {
+  padding: 1em;
+  border-radius: 5px;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.code-block h5 {
+  margin-top: 0;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid;
+  font-size: 1.1em;
+}
+
+.insecure-code {
+  border-color: #dc3545; /* Red */
+  background-color: #ffeef0;
+}
+
+.insecure-code h5 {
+  color: #dc3545;
+  border-color: #f5c6cb;
+}
+
+.secure-code {
+  border-color: #28a745; /* Green */
+  background-color: #f0fff4;
+}
+
+.secure-code h5 {
+  color: #28a745;
+  border-color: #c3e6cb;
+}
+
+/* Make the code itself have a slightly different background */
+.code-block pre {
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
