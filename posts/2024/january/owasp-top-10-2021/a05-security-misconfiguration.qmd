@@ -1,0 +1,1161 @@
+---
+title: "OWASP Top 10 2021: A05 - Security Misconfiguration"
+description: "Complete guide to security misconfigurations, common scenarios, exploitation techniques, and comprehensive prevention strategies."
+author: "Yugesh Mekala"
+date: "2024-01-19"
+categories: [OWASP Top 10, Security Configuration, Server Security, DevSecOps]
+page-layout: full
+title-block-banner: true
+---
+
+# OWASP Top 10 2021: A05 - Security Misconfiguration
+
+## Overview
+
+Security Misconfiguration occurs when security settings are defined, implemented, or maintained improperly. This vulnerability often results from default configurations, incomplete configurations, open cloud storage, misconfigured HTTP headers, and verbose error messages containing sensitive information.
+
+## Common Security Misconfigurations
+
+### 1. Default Credentials and Settings
+
+```yaml
+# MISCONFIGURED: Default database configuration
+# docker-compose.yml
+version: '3.8'
+services:
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Default weak password
+      MYSQL_DATABASE: myapp
+    ports:
+      - "3306:3306"  # Exposed to external network
+    
+  admin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: database
+      PMA_USER: root
+      PMA_PASSWORD: root  # Default credentials
+    ports:
+      - "8080:80"  # Admin interface exposed
+```
+
+```python
+# MISCONFIGURED: Default Flask configuration
+from flask import Flask
+
+app = Flask(__name__)
+
+# Dangerous defaults
+app.config['DEBUG'] = True          # Debug mode in production
+app.config['SECRET_KEY'] = 'dev'    # Default/weak secret key
+app.config['TESTING'] = True        # Testing mode enabled
+
+# Missing security headers
+@app.route('/')
+def index():
+    return "Hello World!"
+
+if __name__ == '__main__':
+    # Running in debug mode, accessible from any IP
+    app.run(debug=True, host='0.0.0.0', port=5000)
+```
+
+### 2. Verbose Error Messages
+
+```python
+# MISCONFIGURED: Exposing sensitive information in errors
+import traceback
+from flask import Flask, request, jsonify
+import mysql.connector
+
+app = Flask(__name__)
+
+@app.route('/user/<user_id>')
+def get_user(user_id):
+    try:
+        # Database connection with hardcoded credentials
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='admin',
+            password='SuperSecret123!',
+            database='users'
+        )
+        cursor = conn.cursor()
+        
+        # Vulnerable query construction
+        query = f"SELECT * FROM users WHERE id = {user_id}"
+        cursor.execute(query)
+        
+        result = cursor.fetchone()
+        if result:
+            return jsonify({'user': result})
+        else:
+            return jsonify({'error': 'User not found'}), 404
+            
+    except Exception as e:
+        # DANGEROUS: Exposing full exception details
+        return jsonify({
+            'error': 'Database error occurred',
+            'details': str(e),
+            'traceback': traceback.format_exc(),
+            'query': query  # Exposing SQL query
+        }), 500
+
+# Error response example:
+# {
+#   "error": "Database error occurred",
+#   "details": "1146 (42S02): Table 'users.users' doesn't exist",
+#   "traceback": "Traceback (most recent call last):\n  File \"/app.py\", line 25...",
+#   "query": "SELECT * FROM users WHERE id = 1"
+# }
+```
+
+### 3. Insecure Cloud Storage
+
+```json
+// MISCONFIGURED: AWS S3 bucket with public access
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::my-company-data/*"
+    },
+    {
+      "Sid": "PublicWrite",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::my-company-data/*"
+    }
+  ]
+}
+```
+
+### 4. Missing Security Headers
+
+```python
+# MISCONFIGURED: Missing security headers
+from flask import Flask, render_template_string
+
+app = Flask(__name__)
+
+@app.route('/')
+def vulnerable_page():
+    # Missing security headers allows various attacks
+    user_input = request.args.get('name', 'World')
+    
+    # XSS vulnerability due to missing CSP headers
+    template = f"<h1>Hello {user_input}!</h1>"
+    return render_template_string(template)
+
+# Response headers (missing security headers):
+# HTTP/1.0 200 OK
+# Content-Type: text/html; charset=utf-8
+# Content-Length: 25
+# Server: Werkzeug/2.0.2 Python/3.9.7
+# Date: Mon, 15 Jan 2024 10:30:00 GMT
+```
+
+## Exploitation Techniques
+
+### 1. Information Disclosure through Error Messages
+
+```python
+# Exploitation script for verbose error messages
+import requests
+import re
+
+def exploit_error_disclosure(base_url):
+    """Extract sensitive information from error messages"""
+    
+    # Test various error conditions
+    test_cases = [
+        {'endpoint': '/user/abc', 'expected': 'Database connection details'},
+        {'endpoint': '/user/-1', 'expected': 'SQL query structure'},
+        {'endpoint': '/admin/config', 'expected': 'Configuration paths'},
+        {'endpoint': '/api/v1/nonexistent', 'expected': 'API structure'}
+    ]
+    
+    findings = []
+    
+    for test in test_cases:
+        try:
+            response = requests.get(f"{base_url}{test['endpoint']}")
+            
+            if response.status_code >= 400:
+                error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                
+                # Look for sensitive information patterns
+                patterns = {
+                    'database_info': r'(?i)(mysql|postgresql|oracle|sql server|mongodb)',
+                    'file_paths': r'([A-Z]:\\|/[a-z]+/[a-z]+)',
+                    'stack_traces': r'Traceback|at\s+\w+\.',
+                    'connection_strings': r'(?i)(server|host|database|user|password)\s*[:=]',
+                    'internal_ips': r'\b(?:10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.)\d{1,3}\.\d{1,3}\b'
+                }
+                
+                for pattern_name, pattern in patterns.items():
+                    if re.search(pattern, str(error_data)):
+                        findings.append({
+                            'endpoint': test['endpoint'],
+                            'vulnerability': 'Information Disclosure',
+                            'type': pattern_name,
+                            'evidence': re.findall(pattern, str(error_data))
+                        })
+        
+        except Exception as e:
+            print(f"Error testing {test['endpoint']}: {e}")
+    
+    return findings
+
+# Usage
+findings = exploit_error_disclosure("https://vulnerable-app.com")
+for finding in findings:
+    print(f"Found {finding['type']} at {finding['endpoint']}: {finding['evidence']}")
+```
+
+### 2. Default Credential Exploitation
+
+```python
+# Common default credentials scanner
+import requests
+from itertools import product
+
+class DefaultCredentialScanner:
+    def __init__(self):
+        self.common_defaults = [
+            ('admin', 'admin'),
+            ('admin', 'password'),
+            ('admin', '123456'),
+            ('root', 'root'),
+            ('root', 'toor'),
+            ('administrator', 'administrator'),
+            ('admin', ''),
+            ('guest', 'guest'),
+            ('test', 'test'),
+            ('demo', 'demo')
+        ]
+        
+        # Service-specific defaults
+        self.service_defaults = {
+            'mysql': [('root', ''), ('root', 'root'), ('mysql', 'mysql')],
+            'postgresql': [('postgres', ''), ('postgres', 'postgres')],
+            'mongodb': [('admin', ''), ('mongo', 'mongo')],
+            'redis': [('', ''), ('admin', 'admin')],
+            'elasticsearch': [('elastic', 'changeme')],
+            'jenkins': [('admin', 'admin'), ('jenkins', 'jenkins')],
+            'tomcat': [('admin', 'admin'), ('tomcat', 'tomcat')],
+            'weblogic': [('weblogic', 'weblogic'), ('admin', 'admin')]
+        }
+    
+    def scan_web_login(self, url, username_field='username', password_field='password'):
+        """Scan web application for default credentials"""
+        results = []
+        
+        for username, password in self.common_defaults:
+            try:
+                login_data = {
+                    username_field: username,
+                    password_field: password
+                }
+                
+                response = requests.post(f"{url}/login", data=login_data, timeout=10)
+                
+                # Check for successful login indicators
+                success_indicators = [
+                    'dashboard', 'welcome', 'logout', 'profile',
+                    'administration', 'settings'
+                ]
+                
+                if (response.status_code == 200 and 
+                    any(indicator in response.text.lower() for indicator in success_indicators)):
+                    
+                    results.append({
+                        'url': url,
+                        'username': username,
+                        'password': password,
+                        'status': 'SUCCESS'
+                    })
+                    
+            except requests.RequestException:
+                continue
+        
+        return results
+    
+    def scan_database_service(self, host, port, service_type):
+        """Scan database services for default credentials"""
+        if service_type not in self.service_defaults:
+            return []
+        
+        results = []
+        credentials = self.service_defaults[service_type]
+        
+        for username, password in credentials:
+            try:
+                if service_type == 'mysql':
+                    import mysql.connector
+                    conn = mysql.connector.connect(
+                        host=host, port=port,
+                        user=username, password=password,
+                        connect_timeout=5
+                    )
+                    conn.close()
+                    results.append({'host': host, 'port': port, 'service': service_type,
+                                  'username': username, 'password': password})
+                
+                elif service_type == 'postgresql':
+                    import psycopg2
+                    conn = psycopg2.connect(
+                        host=host, port=port,
+                        user=username, password=password,
+                        connect_timeout=5
+                    )
+                    conn.close()
+                    results.append({'host': host, 'port': port, 'service': service_type,
+                                  'username': username, 'password': password})
+                
+            except Exception:
+                continue
+        
+        return results
+
+# Usage
+scanner = DefaultCredentialScanner()
+web_results = scanner.scan_web_login("https://target-app.com")
+db_results = scanner.scan_database_service("target-host.com", 3306, "mysql")
+```
+
+### 3. Cloud Storage Misconfiguration Exploitation
+
+```python
+# AWS S3 bucket misconfiguration scanner
+import boto3
+import requests
+from botocore.exceptions import ClientError, NoCredentialsError
+
+class S3MisconfigurationScanner:
+    def __init__(self):
+        self.s3_client = None
+        try:
+            self.s3_client = boto3.client('s3')
+        except NoCredentialsError:
+            print("No AWS credentials configured")
+    
+    def check_bucket_public_access(self, bucket_name):
+        """Check if S3 bucket allows public access"""
+        findings = []
+        
+        # Test 1: Check if bucket exists and is listable without credentials
+        try:
+            response = requests.get(f"https://{bucket_name}.s3.amazonaws.com/")
+            if response.status_code == 200:
+                findings.append({
+                    'type': 'Public Bucket Listing',
+                    'severity': 'High',
+                    'description': 'Bucket contents are publicly listable'
+                })
+        except Exception:
+            pass
+        
+        # Test 2: Check bucket policy (requires AWS credentials)
+        if self.s3_client:
+            try:
+                policy = self.s3_client.get_bucket_policy(Bucket=bucket_name)
+                policy_doc = json.loads(policy['Policy'])
+                
+                # Check for overly permissive policies
+                for statement in policy_doc.get('Statement', []):
+                    if (statement.get('Effect') == 'Allow' and 
+                        statement.get('Principal') == '*'):
+                        
+                        findings.append({
+                            'type': 'Overly Permissive Bucket Policy',
+                            'severity': 'High',
+                            'description': f"Allows public access to actions: {statement.get('Action', [])}"
+                        })
+            
+            except ClientError as e:
+                if e.response['Error']['Code'] != 'NoSuchBucketPolicy':
+                    findings.append({
+                        'type': 'Error Checking Bucket Policy',
+                        'severity': 'Medium',
+                        'description': str(e)
+                    })
+        
+        # Test 3: Check ACL configuration
+        if self.s3_client:
+            try:
+                acl = self.s3_client.get_bucket_acl(Bucket=bucket_name)
+                
+                for grant in acl.get('Grants', []):
+                    grantee = grant.get('Grantee', {})
+                    if (grantee.get('Type') == 'Group' and 
+                        'AllUsers' in grantee.get('URI', '')):
+                        
+                        findings.append({
+                            'type': 'Public ACL Permission',
+                            'severity': 'High',
+                            'description': f"Public {grant.get('Permission')} access via ACL"
+                        })
+            
+            except ClientError:
+                pass
+        
+        return findings
+    
+    def enumerate_bucket_contents(self, bucket_name):
+        """Enumerate publicly accessible bucket contents"""
+        contents = []
+        
+        try:
+            # Try to list objects without authentication
+            response = requests.get(f"https://{bucket_name}.s3.amazonaws.com/")
+            
+            if response.status_code == 200:
+                # Parse XML response to extract object keys
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(response.content)
+                
+                for obj in root.findall('.//{http://s3.amazonaws.com/doc/2006-03-01/}Key'):
+                    contents.append(obj.text)
+        
+        except Exception as e:
+            print(f"Error enumerating bucket contents: {e}")
+        
+        return contents
+
+# Usage
+scanner = S3MisconfigurationScanner()
+findings = scanner.check_bucket_public_access("example-bucket")
+contents = scanner.enumerate_bucket_contents("example-bucket")
+```
+
+## Prevention Strategies
+
+### 1. Secure Configuration Management
+
+```python
+# SECURE: Environment-based configuration
+import os
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SecureConfig:
+    """Secure configuration management"""
+    
+    # Database configuration
+    db_host: str = os.getenv('DB_HOST', 'localhost')
+    db_port: int = int(os.getenv('DB_PORT', '5432'))
+    db_name: str = os.getenv('DB_NAME', 'myapp')
+    db_user: str = os.getenv('DB_USER', 'myapp_user')
+    db_password: str = os.getenv('DB_PASSWORD', '')
+    
+    # Application configuration
+    secret_key: str = os.getenv('SECRET_KEY', '')
+    debug_mode: bool = os.getenv('DEBUG', 'False').lower() == 'true'
+    environment: str = os.getenv('ENVIRONMENT', 'production')
+    
+    # Security configuration
+    session_timeout: int = int(os.getenv('SESSION_TIMEOUT', '3600'))
+    max_login_attempts: int = int(os.getenv('MAX_LOGIN_ATTEMPTS', '5'))
+    password_min_length: int = int(os.getenv('PASSWORD_MIN_LENGTH', '12'))
+    
+    def __post_init__(self):
+        """Validate configuration after initialization"""
+        self.validate_configuration()
+    
+    def validate_configuration(self):
+        """Validate security-critical configuration values"""
+        errors = []
+        
+        # Validate secret key
+        if not self.secret_key:
+            errors.append("SECRET_KEY environment variable must be set")
+        elif len(self.secret_key) < 32:
+            errors.append("SECRET_KEY must be at least 32 characters long")
+        
+        # Validate database password
+        if not self.db_password:
+            errors.append("DB_PASSWORD environment variable must be set")
+        
+        # Validate debug mode in production
+        if self.environment == 'production' and self.debug_mode:
+            errors.append("DEBUG mode must be disabled in production")
+        
+        # Validate security parameters
+        if self.session_timeout < 300:  # 5 minutes minimum
+            errors.append("SESSION_TIMEOUT must be at least 300 seconds")
+        
+        if self.max_login_attempts < 3:
+            errors.append("MAX_LOGIN_ATTEMPTS must be at least 3")
+        
+        if errors:
+            raise ValueError("Configuration validation failed:\n" + "\n".join(errors))
+    
+    @classmethod
+    def from_file(cls, config_file: str) -> 'SecureConfig':
+        """Load configuration from encrypted file"""
+        # Implementation would include decryption logic
+        pass
+
+# Flask application with secure configuration
+from flask import Flask
+from flask_talisman import Talisman
+
+def create_secure_app():
+    app = Flask(__name__)
+    
+    # Load and validate configuration
+    config = SecureConfig()
+    
+    # Apply secure configuration
+    app.config['SECRET_KEY'] = config.secret_key
+    app.config['DEBUG'] = config.debug_mode
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+    app.config['PERMANENT_SESSION_LIFETIME'] = config.session_timeout
+    
+    # Add security headers
+    Talisman(app, 
+        force_https=True,
+        strict_transport_security=True,
+        content_security_policy={
+            'default-src': "'self'",
+            'script-src': "'self' 'unsafe-inline'",
+            'style-src': "'self' 'unsafe-inline'",
+            'img-src': "'self' data: https:",
+        }
+    )
+    
+    return app
+```
+
+### 2. Secure Error Handling
+
+```python
+# SECURE: Safe error handling and logging
+import logging
+import traceback
+from flask import Flask, jsonify, request
+from functools import wraps
+
+# Configure secure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/secure/logs/application.log'),
+        logging.StreamHandler()
+    ]
+)
+
+# Security logger for audit events
+security_logger = logging.getLogger('security')
+security_handler = logging.FileHandler('/secure/logs/security.log')
+security_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - SECURITY - %(levelname)s - %(message)s'
+))
+security_logger.addHandler(security_handler)
+
+app = Flask(__name__)
+
+class SecurityException(Exception):
+    """Custom exception for security-related errors"""
+    pass
+
+def handle_errors_securely(f):
+    """Decorator for secure error handling"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        
+        except SecurityException as e:
+            # Log security events with full details
+            security_logger.error(f"Security violation: {str(e)}", extra={
+                'user_ip': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent'),
+                'endpoint': request.endpoint,
+                'method': request.method
+            })
+            
+            # Return generic error to user
+            return jsonify({'error': 'Access denied'}), 403
+        
+        except ValueError as e:
+            # Log input validation errors
+            app.logger.warning(f"Input validation error: {str(e)}")
+            return jsonify({'error': 'Invalid input provided'}), 400
+        
+        except Exception as e:
+            # Log unexpected errors with full traceback (server-side only)
+            error_id = str(uuid.uuid4())
+            app.logger.error(f"Unexpected error {error_id}: {str(e)}\n{traceback.format_exc()}")
+            
+            # Return generic error with error ID for support
+            if app.config['DEBUG']:
+                # Only in development environment
+                return jsonify({
+                    'error': 'Internal server error',
+                    'error_id': error_id,
+                    'debug_info': str(e)
+                }), 500
+            else:
+                # Production environment
+                return jsonify({
+                    'error': 'Internal server error',
+                    'error_id': error_id
+                }), 500
+    
+    return decorated_function
+
+@app.route('/user/<user_id>')
+@handle_errors_securely
+def get_user(user_id):
+    # Input validation
+    if not user_id.isdigit():
+        raise ValueError("User ID must be numeric")
+    
+    user_id = int(user_id)
+    if user_id <= 0:
+        raise ValueError("User ID must be positive")
+    
+    # Authorization check
+    current_user = get_current_user()
+    if not can_access_user(current_user, user_id):
+        raise SecurityException(f"User {current_user.id} attempted to access user {user_id}")
+    
+    # Secure database query
+    user = get_user_from_db(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    return jsonify({'user': sanitize_user_data(user)})
+
+def sanitize_user_data(user):
+    """Remove sensitive fields from user data"""
+    safe_user = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'created_at': user.created_at.isoformat()
+    }
+    return safe_user
+```
+
+### 3. Infrastructure Security Configuration
+
+```yaml
+# SECURE: Docker configuration with security best practices
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"  # Only expose necessary ports
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=database
+      - DB_USER_FILE=/run/secrets/db_user
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - SECRET_KEY_FILE=/run/secrets/secret_key
+    secrets:
+      - db_user
+      - db_password
+      - secret_key
+    networks:
+      - app_network
+    user: "1000:1000"  # Non-root user
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - app_logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+  database:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+      - MYSQL_DATABASE=myapp
+      - MYSQL_USER_FILE=/run/secrets/db_user
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - mysql_root_password
+      - db_user
+      - db_password
+    networks:
+      - app_network
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-config:/etc/mysql/conf.d:ro
+    command: --default-authentication-plugin=mysql_native_password
+             --skip-grant-tables=false
+             --log-bin-trust-function-creators=false
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - app_network
+    depends_on:
+      - app
+
+secrets:
+  db_user:
+    external: true
+  db_password:
+    external: true
+  secret_key:
+    external: true
+  mysql_root_password:
+    external: true
+
+networks:
+  app_network:
+    driver: bridge
+    internal: false
+
+volumes:
+  mysql_data:
+  app_logs:
+  nginx_logs:
+```
+
+```nginx
+# SECURE: Nginx configuration with security headers
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+    
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1h;
+    ssl_session_tickets off;
+    
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    
+    # Hide server information
+    server_tokens off;
+    
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+    
+    location / {
+        proxy_pass http://app:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Security settings
+        proxy_hide_header X-Powered-By;
+        proxy_hide_header Server;
+        
+        # Rate limiting
+        limit_req zone=api burst=20 nodelay;
+    }
+    
+    # Block common attack patterns
+    location ~* \.(php|asp|aspx|jsp)$ {
+        return 444;
+    }
+    
+    location ~* /(wp-admin|admin|administrator|phpmyadmin) {
+        return 444;
+    }
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+### 4. Automated Configuration Scanning
+
+```python
+# Configuration security scanner
+import yaml
+import json
+import os
+import re
+from typing import List, Dict
+
+class ConfigurationSecurityScanner:
+    def __init__(self):
+        self.findings = []
+        self.security_rules = self.load_security_rules()
+    
+    def load_security_rules(self):
+        """Load security configuration rules"""
+        return {
+            'secrets': {
+                'patterns': [
+                    r'password\s*[:=]\s*["\']?[^"\'\s]+',
+                    r'api[_-]?key\s*[:=]\s*["\']?[^"\'\s]+',
+                    r'secret[_-]?key\s*[:=]\s*["\']?[^"\'\s]+',
+                    r'access[_-]?token\s*[:=]\s*["\']?[^"\'\s]+',
+                    r'private[_-]?key\s*[:=]\s*["\']?[^"\'\s]+'
+                ],
+                'severity': 'High'
+            },
+            'debug_settings': {
+                'patterns': [
+                    r'debug\s*[:=]\s*true',
+                    r'DEBUG\s*[:=]\s*["\']?true["\']?',
+                    r'development\s*[:=]\s*true'
+                ],
+                'severity': 'Medium'
+            },
+            'insecure_protocols': {
+                'patterns': [
+                    r'http://(?!localhost|127\.0\.0\.1)',
+                    r'ftp://',
+                    r'telnet://'
+                ],
+                'severity': 'High'
+            },
+            'weak_encryption': {
+                'patterns': [
+                    r'md5|sha1',
+                    r'DES|RC4',
+                    r'SSLv[23]|TLSv1\.[01]'
+                ],
+                'severity': 'High'
+            }
+        }
+    
+    def scan_configuration_file(self, file_path: str) -> List[Dict]:
+        """Scan configuration file for security issues"""
+        findings = []
+        
+        try:
+            with open(file_path, 'r') as f:
+                content = f.read()
+            
+            # Check for hardcoded secrets
+            for rule_name, rule_config in self.security_rules.items():
+                for pattern in rule_config['patterns']:
+                    matches = re.finditer(pattern, content, re.IGNORECASE)
+                    
+                    for match in matches:
+                        line_number = content[:match.start()].count('\n') + 1
+                        
+                        findings.append({
+                            'file': file_path,
+                            'rule': rule_name,
+                            'severity': rule_config['severity'],
+                            'line': line_number,
+                            'content': match.group(),
+                            'description': f"Potential {rule_name.replace('_', ' ')} detected"
+                        })
+        
+        except Exception as e:
+            findings.append({
+                'file': file_path,
+                'error': str(e),
+                'severity': 'Low',
+                'description': 'Could not scan file'
+            })
+        
+        return findings
+    
+    def scan_docker_configuration(self, docker_compose_path: str) -> List[Dict]:
+        """Scan Docker Compose configuration for security issues"""
+        findings = []
+        
+        try:
+            with open(docker_compose_path, 'r') as f:
+                config = yaml.safe_load(f)
+            
+            services = config.get('services', {})
+            
+            for service_name, service_config in services.items():
+                # Check for privileged containers
+                if service_config.get('privileged'):
+                    findings.append({
+                        'service': service_name,
+                        'issue': 'Privileged container',
+                        'severity': 'High',
+                        'description': 'Container running with privileged access'
+                    })
+                
+                # Check for exposed ports
+                ports = service_config.get('ports', [])
+                for port in ports:
+                    if isinstance(port, str) and ':' in port:
+                        host_port, container_port = port.split(':')
+                        if host_port in ['22', '3306', '5432', '6379', '27017']:
+                            findings.append({
+                                'service': service_name,
+                                'issue': f'Sensitive port {host_port} exposed',
+                                'severity': 'High',
+                                'description': f'Database/SSH port {host_port} exposed to host'
+                            })
+                
+                # Check for environment variables with secrets
+                environment = service_config.get('environment', [])
+                if isinstance(environment, list):
+                    for env_var in environment:
+                        if isinstance(env_var, str) and any(secret in env_var.lower() for secret in ['password', 'secret', 'key']):
+                            findings.append({
+                                'service': service_name,
+                                'issue': 'Hardcoded secret in environment',
+                                'severity': 'High',
+                                'description': f'Potential secret in environment variable: {env_var.split("=")[0]}'
+                            })
+        
+        except Exception as e:
+            findings.append({
+                'file': docker_compose_path,
+                'error': str(e),
+                'severity': 'Medium',
+                'description': 'Could not parse Docker Compose file'
+            })
+        
+        return findings
+    
+    def generate_report(self, scan_results: List[Dict]) -> Dict:
+        """Generate security configuration report"""
+        high_severity = [f for f in scan_results if f.get('severity') == 'High']
+        medium_severity = [f for f in scan_results if f.get('severity') == 'Medium']
+        low_severity = [f for f in scan_results if f.get('severity') == 'Low']
+        
+        return {
+            'summary': {
+                'total_findings': len(scan_results),
+                'high_severity': len(high_severity),
+                'medium_severity': len(medium_severity),
+                'low_severity': len(low_severity)
+            },
+            'findings': scan_results,
+            'recommendations': self.generate_recommendations(scan_results)
+        }
+    
+    def generate_recommendations(self, findings: List[Dict]) -> List[str]:
+        """Generate security recommendations based on findings"""
+        recommendations = []
+        
+        if any('secret' in f.get('rule', '') for f in findings):
+            recommendations.append("Move secrets to environment variables or secret management system")
+        
+        if any('debug' in f.get('rule', '') for f in findings):
+            recommendations.append("Disable debug mode in production environments")
+        
+        if any('privileged' in f.get('issue', '') for f in findings):
+            recommendations.append("Remove privileged access from containers")
+        
+        return recommendations
+
+# Usage
+scanner = ConfigurationSecurityScanner()
+
+# Scan configuration files
+config_findings = scanner.scan_configuration_file('config/app.yaml')
+docker_findings = scanner.scan_docker_configuration('docker-compose.yml')
+
+all_findings = config_findings + docker_findings
+report = scanner.generate_report(all_findings)
+
+print(json.dumps(report, indent=2))
+```
+
+## Testing and Validation
+
+### 1. Configuration Security Testing
+
+```python
+# Automated configuration testing
+import unittest
+import os
+import requests
+import ssl
+import socket
+
+class ConfigurationSecurityTests(unittest.TestCase):
+    def setUp(self):
+        self.base_url = os.getenv('TEST_BASE_URL', 'https://localhost:8080')
+        self.insecure_url = self.base_url.replace('https://', 'http://')
+    
+    def test_https_enforcement(self):
+        """Test that HTTPS is enforced"""
+        try:
+            response = requests.get(self.insecure_url, allow_redirects=False, timeout=5)
+            # Should redirect to HTTPS
+            self.assertIn(response.status_code, [301, 302, 307, 308])
+            self.assertTrue(response.headers.get('Location', '').startswith('https://'))
+        except requests.exceptions.ConnectionError:
+            # HTTP port not accessible - good!
+            pass
+    
+    def test_security_headers(self):
+        """Test for presence of security headers"""
+        response = requests.get(self.base_url, verify=False)
+        
+        required_headers = [
+            'X-Frame-Options',
+            'X-Content-Type-Options',
+            'X-XSS-Protection',
+            'Strict-Transport-Security',
+            'Content-Security-Policy'
+        ]
+        
+        for header in required_headers:
+            self.assertIn(header, response.headers, f"Missing security header: {header}")
+    
+    def test_server_information_disclosure(self):
+        """Test that server information is not disclosed"""
+        response = requests.get(self.base_url, verify=False)
+        
+        # Should not reveal server software
+        server_header = response.headers.get('Server', '')
+        self.assertNotIn('Apache', server_header)
+        self.assertNotIn('nginx', server_header)
+        self.assertNotIn('IIS', server_header)
+        
+        # Should not reveal powered-by information
+        self.assertNotIn('X-Powered-By', response.headers)
+    
+    def test_ssl_configuration(self):
+        """Test SSL/TLS configuration"""
+        hostname = self.base_url.replace('https://', '').split('/')[0]
+        
+        context = ssl.create_default_context()
+        with socket.create_connection((hostname, 443)) as sock:
+            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                # Check SSL version
+                self.assertIn(ssock.version(), ['TLSv1.2', 'TLSv1.3'])
+                
+                # Check cipher strength
+                cipher = ssock.cipher()
+                self.assertGreaterEqual(cipher[2], 128)  # Key length >= 128 bits
+    
+    def test_error_handling(self):
+        """Test that errors don't expose sensitive information"""
+        # Test 404 error
+        response = requests.get(f"{self.base_url}/nonexistent", verify=False)
+        self.assertEqual(response.status_code, 404)
+        
+        # Should not contain stack traces or file paths
+        self.assertNotIn('Traceback', response.text)
+        self.assertNotIn('/usr/', response.text)
+        self.assertNotIn('C:\\', response.text)
+        
+        # Test 500 error (if possible to trigger)
+        try:
+            response = requests.get(f"{self.base_url}/trigger-error", verify=False)
+            if response.status_code == 500:
+                self.assertNotIn('Exception', response.text)
+                self.assertNotIn('Error:', response.text)
+        except:
+            pass  # Endpoint might not exist
+    
+    def test_default_credentials(self):
+        """Test that default credentials are not accepted"""
+        default_creds = [
+            ('admin', 'admin'),
+            ('admin', 'password'),
+            ('root', 'root')
+        ]
+        
+        for username, password in default_creds:
+            response = requests.post(
+                f"{self.base_url}/login",
+                data={'username': username, 'password': password},
+                verify=False
+            )
+            
+            # Should not successfully authenticate
+            self.assertNotEqual(response.status_code, 200)
+            self.assertNotIn('dashboard', response.text.lower())
+            self.assertNotIn('welcome', response.text.lower())
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+## Real-World Case Studies
+
+### Case Study: Capital One Breach (2019)
+
+**Misconfiguration**: Overprivileged IAM role in AWS
+**Impact**: 100 million customers affected
+**Root Cause**: Server-Side Request Forgery (SSRF) exploited misconfigured IAM permissions
+
+**Key Lessons**:
+1. Implement least privilege access
+2. Regular audit of cloud permissions
+3. Monitor for unusual IAM role usage
+4. Implement proper network segmentation
+
+### Case Study: Elasticsearch Data Exposure (2019)
+
+**Misconfiguration**: Open Elasticsearch clusters without authentication
+**Impact**: 4.9 billion records exposed across multiple organizations
+**Root Cause**: Default configurations left unchanged
+
+**Prevention Strategies**:
+1. Change default passwords immediately
+2. Enable authentication on all services
+3. Use network firewalls to restrict access
+4. Regular scanning for exposed services
+
+## Conclusion
+
+Security Misconfiguration remains a critical vulnerability because:
+
+1. **Default settings often prioritize usability over security**
+2. **Complex systems have many configuration points**
+3. **Security teams may not be involved in deployment**
+4. **Configuration drift occurs over time**
+
+Prevention requires:
+1. Secure configuration baselines
+2. Automated configuration scanning
+3. Infrastructure as Code practices
+4. Regular security assessments
+5. Principle of least privilege
+
+## References
+
+- [OWASP Top 10 2021 - A05 Security Misconfiguration](https://owasp.org/Top10/A05_2021-Security_Misconfiguration/)
+- [NIST Guide to General Server Security](https://csrc.nist.gov/publications/detail/sp/800-123/final)
+- [CIS Security Benchmarks](https://www.cisecurity.org/cis-benchmarks)

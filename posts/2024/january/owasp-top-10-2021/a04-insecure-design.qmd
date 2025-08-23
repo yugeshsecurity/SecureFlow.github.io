@@ -1,0 +1,768 @@
+---
+title: "OWASP Top 10 2021: A04 - Insecure Design"
+description: "Understanding insecure design patterns, threat modeling, and secure design principles with practical examples and prevention strategies."
+author: "Yugesh Mekala"
+date: "2024-01-18"
+categories: [OWASP Top 10, Secure Design, Threat Modeling, Security Architecture]
+page-layout: full
+title-block-banner: true
+---
+
+# OWASP Top 10 2021: A04 - Insecure Design
+
+## Overview
+
+Insecure Design is a new category for 2021 that focuses on risks related to design and architectural flaws. It represents missing or ineffective control design, as opposed to implementation defects. Secure design is a culture and methodology that constantly evaluates threats and ensures that code is robustly designed and tested to prevent known attack methods.
+
+## Understanding Insecure Design
+
+Insecure design occurs when:
+- Security controls are missing from the design phase
+- Threat modeling is not performed
+- Security requirements are not defined
+- Design patterns ignore security principles
+- Risk assessment is inadequate or missing
+
+## Common Insecure Design Patterns
+
+### 1. Missing Rate Limiting
+
+```python
+# INSECURE DESIGN: No rate limiting on password reset
+@app.route('/password-reset', methods=['POST'])
+def password_reset():
+    email = request.json.get('email')
+    
+    if email and is_valid_email(email):
+        # No rate limiting - attacker can spam reset requests
+        send_password_reset_email(email)
+        return {"message": "Reset email sent"}
+    
+    return {"error": "Invalid email"}, 400
+
+# ATTACK SCENARIO:
+# Attacker can send thousands of password reset requests
+# 1. Flooding user's inbox
+# 2. Overwhelming email service
+# 3. Potential for social engineering attacks
+```
+
+### 2. Insufficient Business Logic Validation
+
+```python
+# INSECURE DESIGN: E-commerce checkout without proper validation
+@app.route('/checkout', methods=['POST'])
+def process_checkout():
+    cart_items = request.json.get('items', [])
+    total_amount = 0
+    
+    for item in cart_items:
+        # Only validates that price exists, not that it's legitimate
+        if 'price' in item and 'quantity' in item:
+            total_amount += item['price'] * item['quantity']
+    
+    # Process payment without verifying prices against database
+    payment_result = process_payment(total_amount)
+    
+    if payment_result['success']:
+        return {"message": "Order processed"}
+    
+    return {"error": "Payment failed"}, 400
+
+# ATTACK SCENARIO:
+# Client-side price manipulation
+# POST /checkout
+# {
+#   "items": [
+#     {"id": 1, "name": "Laptop", "price": 0.01, "quantity": 1}
+#   ]
+# }
+```
+
+### 3. Missing Authorization Controls
+
+```python
+# INSECURE DESIGN: Document sharing without proper access control design
+class DocumentManager:
+    def __init__(self):
+        self.documents = {}
+    
+    def share_document(self, doc_id, share_with_email):
+        # Missing design: No consideration of sharing permissions
+        # No audit trail, no expiration, no access levels
+        
+        if doc_id in self.documents:
+            # Simply adds email to shared list
+            if 'shared_with' not in self.documents[doc_id]:
+                self.documents[doc_id]['shared_with'] = []
+            
+            self.documents[doc_id]['shared_with'].append(share_with_email)
+            return True
+        
+        return False
+    
+    def get_document(self, doc_id, user_email):
+        # Insufficient access control logic
+        doc = self.documents.get(doc_id)
+        if doc and (doc['owner'] == user_email or 
+                   user_email in doc.get('shared_with', [])):
+            return doc
+        
+        return None
+
+# DESIGN FLAWS:
+# 1. No permission levels (read/write/admin)
+# 2. No sharing expiration
+# 3. No audit logging
+# 4. No sharing limits
+# 5. Owner can't revoke access easily
+```
+
+## Secure Design Principles
+
+### 1. Defense in Depth
+
+```python
+# SECURE DESIGN: Multi-layered security approach
+class SecureUserManager:
+    def __init__(self):
+        self.failed_login_attempts = {}
+        self.rate_limiter = RateLimiter()
+        self.audit_logger = AuditLogger()
+    
+    def authenticate_user(self, username, password, ip_address, user_agent):
+        """Multi-layered authentication with comprehensive security controls"""
+        
+        # Layer 1: Rate limiting
+        if not self.rate_limiter.allow_request(ip_address, 'login'):
+            self.audit_logger.log_security_event(
+                'RATE_LIMIT_EXCEEDED', 
+                {'ip': ip_address, 'username': username}
+            )
+            raise RateLimitExceeded("Too many login attempts")
+        
+        # Layer 2: Account lockout protection
+        failed_attempts = self.failed_login_attempts.get(username, 0)
+        if failed_attempts >= 5:
+            account_locked_until = self.get_account_lock_expiry(username)
+            if datetime.now() < account_locked_until:
+                self.audit_logger.log_security_event(
+                    'ACCOUNT_LOCKED_ATTEMPT',
+                    {'username': username, 'ip': ip_address}
+                )
+                raise AccountLocked("Account temporarily locked")
+        
+        # Layer 3: Credential validation
+        user = self.get_user_by_username(username)
+        if not user or not self.verify_password(password, user.password_hash):
+            self.increment_failed_attempts(username)
+            self.audit_logger.log_security_event(
+                'LOGIN_FAILED',
+                {'username': username, 'ip': ip_address, 'user_agent': user_agent}
+            )
+            raise InvalidCredentials("Invalid username or password")
+        
+        # Layer 4: Additional security checks
+        if self.is_suspicious_login(user, ip_address, user_agent):
+            self.trigger_additional_verification(user, ip_address)
+            return {'status': 'additional_verification_required'}
+        
+        # Layer 5: Session security
+        session_token = self.create_secure_session(user, ip_address, user_agent)
+        
+        # Reset failed attempts on successful login
+        self.reset_failed_attempts(username)
+        
+        self.audit_logger.log_security_event(
+            'LOGIN_SUCCESS',
+            {'username': username, 'ip': ip_address}
+        )
+        
+        return {'status': 'success', 'token': session_token}
+```
+
+### 2. Principle of Least Privilege
+
+```python
+# SECURE DESIGN: Role-based access control with granular permissions
+class PermissionManager:
+    def __init__(self):
+        self.permissions = {
+            'user.read': 'Read user information',
+            'user.write': 'Modify user information',
+            'user.delete': 'Delete user accounts',
+            'document.read': 'Read documents',
+            'document.write': 'Create/modify documents',
+            'document.delete': 'Delete documents',
+            'document.share': 'Share documents with others',
+            'admin.user_management': 'Manage user accounts',
+            'admin.system_config': 'Modify system configuration'
+        }
+        
+        self.roles = {
+            'viewer': ['user.read', 'document.read'],
+            'editor': ['user.read', 'document.read', 'document.write'],
+            'manager': ['user.read', 'user.write', 'document.read', 
+                       'document.write', 'document.share'],
+            'admin': list(self.permissions.keys())  # All permissions
+        }
+    
+    def check_permission(self, user_role, required_permission):
+        """Check if user role has required permission"""
+        user_permissions = self.roles.get(user_role, [])
+        return required_permission in user_permissions
+    
+    def require_permission(self, permission):
+        """Decorator to enforce permission requirements"""
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                user = get_current_user()
+                if not self.check_permission(user.role, permission):
+                    audit_log(f"Unauthorized access attempt: {user.username} "
+                            f"tried to access {permission}")
+                    raise PermissionDenied(f"Insufficient privileges for {permission}")
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+
+# Usage with proper permission checks
+permission_manager = PermissionManager()
+
+@app.route('/users/<user_id>', methods=['DELETE'])
+@permission_manager.require_permission('user.delete')
+def delete_user(user_id):
+    # Additional check: users can only delete their own account unless admin
+    current_user = get_current_user()
+    if (current_user.id != user_id and 
+        not permission_manager.check_permission(current_user.role, 'admin.user_management')):
+        raise PermissionDenied("Cannot delete other users' accounts")
+    
+    user_service.delete_user(user_id)
+    return {"message": "User deleted successfully"}
+```
+
+### 3. Fail Securely
+
+```python
+# SECURE DESIGN: Failing securely with proper error handling
+class SecureFileUpload:
+    def __init__(self):
+        self.allowed_extensions = {'.jpg', '.jpeg', '.png', '.pdf', '.docx'}
+        self.max_file_size = 10 * 1024 * 1024  # 10MB
+        self.upload_directory = '/secure/uploads'
+        
+    def upload_file(self, file, user_id):
+        """Secure file upload with comprehensive validation"""
+        
+        try:
+            # Validation 1: File existence and basic properties
+            if not file or not file.filename:
+                self.log_security_event('UPLOAD_REJECTED', 'No file provided', user_id)
+                return {'error': 'No file provided'}, 400
+            
+            # Validation 2: File extension
+            file_ext = Path(file.filename).suffix.lower()
+            if file_ext not in self.allowed_extensions:
+                self.log_security_event('UPLOAD_REJECTED', f'Invalid extension: {file_ext}', user_id)
+                return {'error': 'File type not allowed'}, 400
+            
+            # Validation 3: File size
+            file.seek(0, 2)  # Seek to end
+            file_size = file.tell()
+            file.seek(0)  # Reset to beginning
+            
+            if file_size > self.max_file_size:
+                self.log_security_event('UPLOAD_REJECTED', f'File too large: {file_size}', user_id)
+                return {'error': 'File too large'}, 400
+            
+            # Validation 4: File content type verification
+            if not self.verify_file_content(file):
+                self.log_security_event('UPLOAD_REJECTED', 'Content type mismatch', user_id)
+                return {'error': 'Invalid file content'}, 400
+            
+            # Validation 5: Virus scanning (in production)
+            if not self.scan_for_malware(file):
+                self.log_security_event('UPLOAD_REJECTED', 'Malware detected', user_id)
+                return {'error': 'File failed security scan'}, 400
+            
+            # Generate secure filename
+            secure_filename = self.generate_secure_filename(file.filename, user_id)
+            file_path = os.path.join(self.upload_directory, secure_filename)
+            
+            # Save file with secure permissions
+            file.save(file_path)
+            os.chmod(file_path, 0o644)  # Read-only for others
+            
+            self.log_security_event('UPLOAD_SUCCESS', f'File uploaded: {secure_filename}', user_id)
+            
+            return {'message': 'File uploaded successfully', 'filename': secure_filename}, 200
+            
+        except PermissionError:
+            # Fail securely - don't reveal internal paths
+            self.log_security_event('UPLOAD_ERROR', 'Permission error during upload', user_id)
+            return {'error': 'Upload failed due to server configuration'}, 500
+            
+        except OSError as e:
+            # Fail securely - don't reveal system details
+            self.log_security_event('UPLOAD_ERROR', f'System error: {str(e)}', user_id)
+            return {'error': 'Upload failed due to system error'}, 500
+            
+        except Exception as e:
+            # Catch-all - fail securely
+            self.log_security_event('UPLOAD_ERROR', f'Unexpected error: {type(e).__name__}', user_id)
+            return {'error': 'Upload failed'}, 500
+    
+    def verify_file_content(self, file):
+        """Verify file content matches claimed type"""
+        file_header = file.read(512)
+        file.seek(0)
+        
+        # Check file signatures (magic numbers)
+        image_signatures = [
+            b'\xff\xd8\xff',  # JPEG
+            b'\x89PNG\r\n\x1a\n',  # PNG
+        ]
+        
+        pdf_signature = b'%PDF'
+        
+        for sig in image_signatures:
+            if file_header.startswith(sig):
+                return True
+        
+        if file_header.startswith(pdf_signature):
+            return True
+        
+        return False
+```
+
+## Threat Modeling
+
+### 1. STRIDE Threat Model Implementation
+
+```python
+# SECURE DESIGN: Implementing STRIDE threat modeling
+class ThreatModel:
+    def __init__(self, system_name):
+        self.system_name = system_name
+        self.threats = {
+            'Spoofing': [],
+            'Tampering': [],
+            'Repudiation': [],
+            'Information_Disclosure': [],
+            'Denial_of_Service': [],
+            'Elevation_of_Privilege': []
+        }
+        self.mitigations = {}
+    
+    def add_threat(self, category, threat_description, likelihood, impact):
+        """Add identified threat to the model"""
+        threat = {
+            'description': threat_description,
+            'likelihood': likelihood,  # 1-5
+            'impact': impact,         # 1-5
+            'risk_score': likelihood * impact,
+            'mitigations': []
+        }
+        self.threats[category].append(threat)
+        return threat
+    
+    def add_mitigation(self, threat_category, threat_index, mitigation):
+        """Add mitigation strategy for specific threat"""
+        if (threat_category in self.threats and 
+            0 <= threat_index < len(self.threats[threat_category])):
+            
+            self.threats[threat_category][threat_index]['mitigations'].append(mitigation)
+    
+    def generate_security_requirements(self):
+        """Generate security requirements based on identified threats"""
+        requirements = []
+        
+        for category, threats in self.threats.items():
+            for threat in threats:
+                if threat['risk_score'] >= 15:  # High risk
+                    requirements.extend(threat['mitigations'])
+        
+        return list(set(requirements))  # Remove duplicates
+
+# Example: E-commerce application threat model
+ecommerce_threats = ThreatModel("E-commerce Platform")
+
+# Spoofing threats
+ecommerce_threats.add_threat(
+    'Spoofing',
+    'Attacker impersonates legitimate user to access account',
+    4, 5  # High likelihood, high impact
+)
+ecommerce_threats.add_mitigation('Spoofing', 0, 'Implement multi-factor authentication')
+ecommerce_threats.add_mitigation('Spoofing', 0, 'Use strong session management')
+ecommerce_threats.add_mitigation('Spoofing', 0, 'Implement device fingerprinting')
+
+# Tampering threats
+ecommerce_threats.add_threat(
+    'Tampering',
+    'Attacker modifies prices during checkout process',
+    3, 4
+)
+ecommerce_threats.add_mitigation('Tampering', 0, 'Server-side price validation')
+ecommerce_threats.add_mitigation('Tampering', 0, 'Implement request signing')
+ecommerce_threats.add_mitigation('Tampering', 0, 'Use tamper-evident logs')
+
+# Generate requirements
+security_requirements = ecommerce_threats.generate_security_requirements()
+```
+
+### 2. Attack Tree Analysis
+
+```python
+# SECURE DESIGN: Attack tree analysis for banking application
+class AttackTree:
+    def __init__(self, goal):
+        self.goal = goal
+        self.root = AttackNode(goal)
+    
+    def add_attack_path(self, path, probability, impact, cost):
+        """Add an attack path to the tree"""
+        current_node = self.root
+        
+        for step in path:
+            child_node = current_node.find_child(step)
+            if not child_node:
+                child_node = AttackNode(step)
+                current_node.add_child(child_node)
+            current_node = child_node
+        
+        # Set leaf node properties
+        current_node.probability = probability
+        current_node.impact = impact
+        current_node.cost = cost
+    
+    def calculate_risk(self):
+        """Calculate overall risk based on all attack paths"""
+        return self.root.calculate_risk()
+
+class AttackNode:
+    def __init__(self, description):
+        self.description = description
+        self.children = []
+        self.probability = 0
+        self.impact = 0
+        self.cost = 0
+    
+    def add_child(self, child):
+        self.children.append(child)
+    
+    def find_child(self, description):
+        for child in self.children:
+            if child.description == description:
+                return child
+        return None
+    
+    def calculate_risk(self):
+        if not self.children:  # Leaf node
+            return self.probability * self.impact
+        
+        # For parent nodes, calculate based on children
+        total_risk = 0
+        for child in self.children:
+            total_risk += child.calculate_risk()
+        return total_risk
+
+# Example: Online banking attack tree
+banking_attacks = AttackTree("Steal money from user account")
+
+# Attack path 1: Credential theft
+banking_attacks.add_attack_path([
+    "Obtain user credentials",
+    "Phishing attack",
+    "Create fake banking website",
+    "Send phishing emails"
+], probability=0.3, impact=10, cost=500)
+
+# Attack path 2: Session hijacking
+banking_attacks.add_attack_path([
+    "Hijack user session",
+    "Man-in-the-middle attack",
+    "Compromise network traffic",
+    "Use unsecured WiFi"
+], probability=0.1, impact=10, cost=1000)
+
+# Attack path 3: Malware
+banking_attacks.add_attack_path([
+    "Install banking malware",
+    "Social engineering",
+    "Convince user to download software",
+    "Distribute via email/website"
+], probability=0.2, impact=9, cost=2000)
+
+overall_risk = banking_attacks.calculate_risk()
+```
+
+## Secure Architecture Patterns
+
+### 1. Zero Trust Architecture
+
+```python
+# SECURE DESIGN: Zero Trust implementation
+class ZeroTrustGateway:
+    def __init__(self):
+        self.device_registry = DeviceRegistry()
+        self.policy_engine = PolicyEngine()
+        self.audit_logger = AuditLogger()
+    
+    def authorize_request(self, request, user, device_info):
+        """Comprehensive authorization based on Zero Trust principles"""
+        
+        authorization_context = {
+            'user': user,
+            'device': device_info,
+            'request': request,
+            'timestamp': datetime.now(),
+            'location': self.get_location(request.ip_address)
+        }
+        
+        # Step 1: Verify user identity
+        if not self.verify_user_identity(user):
+            self.audit_logger.log_access_denied('INVALID_USER', authorization_context)
+            return False
+        
+        # Step 2: Verify device trust
+        device_trust_level = self.device_registry.get_trust_level(device_info)
+        if device_trust_level < self.get_required_trust_level(request.resource):
+            self.audit_logger.log_access_denied('UNTRUSTED_DEVICE', authorization_context)
+            return False
+        
+        # Step 3: Evaluate access policy
+        policy_decision = self.policy_engine.evaluate(authorization_context)
+        if not policy_decision.allowed:
+            self.audit_logger.log_access_denied('POLICY_VIOLATION', authorization_context)
+            return False
+        
+        # Step 4: Risk assessment
+        risk_score = self.calculate_risk_score(authorization_context)
+        if risk_score > self.get_risk_threshold(request.resource):
+            # Require additional authentication
+            if not self.require_step_up_authentication(user, device_info):
+                self.audit_logger.log_access_denied('HIGH_RISK', authorization_context)
+                return False
+        
+        # Step 5: Continuous monitoring
+        self.start_session_monitoring(user, device_info, request.session_id)
+        
+        self.audit_logger.log_access_granted('SUCCESS', authorization_context)
+        return True
+    
+    def calculate_risk_score(self, context):
+        """Calculate risk score based on multiple factors"""
+        risk_score = 0
+        
+        # Location risk
+        if context['location']['country'] not in TRUSTED_COUNTRIES:
+            risk_score += 30
+        
+        # Time-based risk
+        if self.is_unusual_access_time(context['user'], context['timestamp']):
+            risk_score += 20
+        
+        # Device risk
+        device_risk = self.device_registry.get_risk_score(context['device'])
+        risk_score += device_risk
+        
+        # Behavioral risk
+        if self.detect_unusual_behavior(context['user'], context['request']):
+            risk_score += 40
+        
+        return risk_score
+```
+
+### 2. Microservices Security Pattern
+
+```python
+# SECURE DESIGN: Secure microservices communication
+class ServiceMesh:
+    def __init__(self):
+        self.service_registry = ServiceRegistry()
+        self.cert_manager = CertificateManager()
+        self.policy_engine = PolicyEngine()
+    
+    def secure_service_call(self, source_service, target_service, request_data):
+        """Secure inter-service communication"""
+        
+        # Step 1: Service authentication
+        source_cert = self.cert_manager.get_service_certificate(source_service)
+        if not self.cert_manager.verify_certificate(source_cert):
+            raise ServiceAuthenticationError("Invalid source service certificate")
+        
+        # Step 2: Service authorization
+        if not self.policy_engine.can_service_access(source_service, target_service):
+            raise ServiceAuthorizationError(f"{source_service} not authorized to access {target_service}")
+        
+        # Step 3: Request validation and sanitization
+        validated_data = self.validate_request_data(request_data, target_service)
+        
+        # Step 4: Encrypt communication
+        encrypted_payload = self.encrypt_payload(validated_data, target_service)
+        
+        # Step 5: Add service mesh headers
+        headers = {
+            'X-Service-Source': source_service,
+            'X-Service-Target': target_service,
+            'X-Request-ID': str(uuid.uuid4()),
+            'X-Service-Signature': self.sign_request(encrypted_payload, source_cert)
+        }
+        
+        # Step 6: Make secure request
+        response = self.make_secure_request(target_service, encrypted_payload, headers)
+        
+        # Step 7: Verify response
+        if not self.verify_response_signature(response, target_service):
+            raise ServiceIntegrityError("Response signature verification failed")
+        
+        return self.decrypt_response(response)
+    
+    def validate_request_data(self, data, target_service):
+        """Validate request data based on service schema"""
+        service_schema = self.service_registry.get_schema(target_service)
+        
+        try:
+            jsonschema.validate(data, service_schema)
+            return data
+        except jsonschema.ValidationError as e:
+            raise RequestValidationError(f"Invalid request data: {e.message}")
+```
+
+## Testing Insecure Design
+
+### 1. Security Architecture Review
+
+```python
+# Security architecture assessment framework
+class ArchitectureSecurityReview:
+    def __init__(self):
+        self.findings = []
+        self.risk_categories = {
+            'High': [],
+            'Medium': [],
+            'Low': []
+        }
+    
+    def review_authentication_design(self, auth_spec):
+        """Review authentication architecture"""
+        issues = []
+        
+        # Check for multi-factor authentication
+        if not auth_spec.get('mfa_enabled', False):
+            issues.append({
+                'severity': 'High',
+                'category': 'Authentication',
+                'description': 'Multi-factor authentication not implemented',
+                'recommendation': 'Implement MFA for all user accounts'
+            })
+        
+        # Check password policy
+        password_policy = auth_spec.get('password_policy', {})
+        if password_policy.get('min_length', 0) < 12:
+            issues.append({
+                'severity': 'Medium',
+                'category': 'Authentication',
+                'description': 'Weak password length requirement',
+                'recommendation': 'Require minimum 12 character passwords'
+            })
+        
+        # Check session management
+        session_config = auth_spec.get('session_management', {})
+        if not session_config.get('secure_cookies', False):
+            issues.append({
+                'severity': 'High',
+                'category': 'Session Management',
+                'description': 'Cookies not marked as secure',
+                'recommendation': 'Mark all cookies as Secure and HttpOnly'
+            })
+        
+        return issues
+    
+    def review_authorization_design(self, authz_spec):
+        """Review authorization architecture"""
+        issues = []
+        
+        # Check for role-based access control
+        if not authz_spec.get('rbac_implemented', False):
+            issues.append({
+                'severity': 'High',
+                'category': 'Authorization',
+                'description': 'No role-based access control',
+                'recommendation': 'Implement RBAC with principle of least privilege'
+            })
+        
+        # Check for resource-level permissions
+        if not authz_spec.get('resource_level_authz', False):
+            issues.append({
+                'severity': 'High',
+                'category': 'Authorization',
+                'description': 'Missing resource-level authorization',
+                'recommendation': 'Implement granular resource permissions'
+            })
+        
+        return issues
+    
+    def generate_report(self):
+        """Generate comprehensive security architecture report"""
+        report = {
+            'total_findings': len(self.findings),
+            'risk_distribution': {
+                'High': len(self.risk_categories['High']),
+                'Medium': len(self.risk_categories['Medium']),
+                'Low': len(self.risk_categories['Low'])
+            },
+            'findings': self.findings,
+            'recommendations': self.generate_recommendations()
+        }
+        return report
+```
+
+## Real-World Examples
+
+### Case Study: Capital One Data Breach (2019)
+
+**Insecure Design Issues**:
+- Overprivileged IAM roles
+- Insufficient network segmentation
+- Missing monitoring for privilege escalation
+
+**Impact**: 100 million customers affected
+
+**Secure Design Lessons**:
+1. Implement least privilege access
+2. Use network micro-segmentation
+3. Continuous monitoring of privilege usage
+4. Regular security architecture reviews
+
+### Case Study: SolarWinds Supply Chain Attack (2020)
+
+**Design Flaws**:
+- Insufficient build process security
+- Weak software update verification
+- Missing threat detection in critical systems
+
+**Prevention through Secure Design**:
+1. Secure development lifecycle (SDLC)
+2. Code signing and verification
+3. Zero trust architecture
+4. Supply chain security controls
+
+## Conclusion
+
+Insecure design is fundamentally different from implementation bugs—it represents missing security controls that should have been designed into the system from the beginning. Prevention requires:
+
+1. **Security-by-Design**: Integrate security into the design phase
+2. **Threat Modeling**: Systematically identify and address threats
+3. **Security Architecture Reviews**: Regular assessment of design decisions
+4. **Secure Design Patterns**: Use proven security patterns and frameworks
+
+Remember: You cannot secure by adding controls after the fact—security must be designed in from the start.
+
+## References
+
+- [OWASP Top 10 2021 - A04 Insecure Design](https://owasp.org/Top10/A04_2021-Insecure_Design/)
+- [OWASP Threat Modeling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html)
+- [NIST Secure Software Development Framework](https://csrc.nist.gov/Projects/ssdf)

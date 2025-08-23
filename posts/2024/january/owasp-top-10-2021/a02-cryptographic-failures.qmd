@@ -1,0 +1,514 @@
+---
+title: "OWASP Top 10 2021: A02 - Cryptographic Failures"
+description: "Complete guide to cryptographic failures, exploitation techniques, and prevention strategies with practical examples."
+author: "Yugesh Mekala"
+date: "2024-01-16"
+categories: [OWASP Top 10, Cryptography, Data Protection, Web Security]
+page-layout: full
+title-block-banner: true
+---
+
+# OWASP Top 10 2021: A02 - Cryptographic Failures
+
+## Overview
+
+Cryptographic Failures (previously known as Sensitive Data Exposure) occur when applications fail to properly protect sensitive data in transit and at rest. This vulnerability focuses on failures related to cryptography that often lead to exposure of sensitive data.
+
+## Understanding Cryptographic Failures
+
+Cryptographic failures encompass several scenarios:
+
+- **Weak or missing encryption** of sensitive data
+- **Use of deprecated cryptographic algorithms**
+- **Poor key management practices**
+- **Insufficient protection of data in transit**
+- **Improper certificate validation**
+
+## Common Vulnerabilities
+
+### 1. Weak Encryption Algorithms
+
+```python
+# VULNERABLE: Using deprecated MD5 for password hashing
+import hashlib
+
+def hash_password_weak(password):
+    # MD5 is cryptographically broken
+    return hashlib.md5(password.encode()).hexdigest()
+
+# VULNERABLE: Using DES encryption (56-bit key)
+from Crypto.Cipher import DES
+
+def encrypt_weak(data, key):
+    cipher = DES.new(key, DES.MODE_ECB)  # ECB mode is also vulnerable
+    return cipher.encrypt(data)
+```
+
+### 2. Hardcoded Secrets
+
+```javascript
+// VULNERABLE: Hardcoded API keys
+const config = {
+    apiKey: "sk_live_abcd1234567890",  // Exposed in source code
+    dbPassword: "SuperSecret123!",     // Hardcoded password
+    jwtSecret: "mySecretKey"           // Weak secret
+};
+
+// VULNERABLE: Client-side secrets
+const CLIENT_SECRET = "very_secret_key";  // Visible to users
+```
+
+### 3. Insecure Data Transmission
+
+```python
+# VULNERABLE: HTTP instead of HTTPS
+import requests
+
+def send_sensitive_data(user_data):
+    # Data sent in plaintext over HTTP
+    response = requests.post('http://api.example.com/users', json=user_data)
+    return response.json()
+
+# VULNERABLE: Disabled SSL verification
+def api_call_insecure():
+    response = requests.get('https://api.example.com/data', verify=False)
+    return response.json()
+```
+
+## Exploitation Techniques
+
+### 1. Man-in-the-Middle (MITM) Attacks
+
+```python
+# Intercepting HTTP traffic with mitmproxy
+# mitmproxy script to capture sensitive data
+from mitmproxy import http
+
+def request(flow: http.HTTPFlow) -> None:
+    if "password" in flow.request.content.decode('utf-8', errors='ignore'):
+        print(f"Captured password from: {flow.request.pretty_host}")
+        print(f"Content: {flow.request.content}")
+
+# Command to run:
+# mitmdump -s capture_passwords.py
+```
+
+### 2. Rainbow Table Attacks
+
+```python
+# Demonstrating MD5 weakness
+import hashlib
+
+# Common passwords and their MD5 hashes
+rainbow_table = {
+    "5d41402abc4b2a76b9719d911017c592": "hello",
+    "098f6bcd4621d373cade4e832627b4f6": "test",
+    "25d55ad283aa400af464c76d713c07ad": "hello",
+    "e99a18c428cb38d5f260853678922e03": "abc123"
+}
+
+def crack_md5_hash(hash_value):
+    if hash_value in rainbow_table:
+        return rainbow_table[hash_value]
+    return None
+
+# Example usage
+cracked = crack_md5_hash("5d41402abc4b2a76b9719d911017c592")
+print(f"Cracked password: {cracked}")  # Output: hello
+```
+
+### 3. SSL/TLS Vulnerabilities
+
+```bash
+# Testing SSL/TLS configuration with testssl.sh
+./testssl.sh --vulnerable https://example.com
+
+# Using nmap to check for SSL vulnerabilities
+nmap --script ssl-enum-ciphers -p 443 example.com
+
+# Using SSLyze for comprehensive SSL analysis
+sslyze --regular example.com:443
+```
+
+### 4. Database Encryption Bypass
+
+```sql
+-- Exploiting weak database encryption
+-- If data is stored with weak encryption, it can be easily decrypted
+
+-- Example: ROT13 "encryption" (easily reversible)
+SELECT REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+    encrypted_field,
+    'A','N'), 'B','O'), 'C','P'), 'D','Q'), 'E','R'), 'F','S'), 'G','T'), 'H','U'), 'I','V'), 'J','W'), 'K','X'), 'L','Y'), 'M','Z'
+) as decrypted_data FROM sensitive_table;
+```
+
+## Prevention Strategies
+
+### 1. Strong Encryption Implementation
+
+```python
+# SECURE: Using bcrypt for password hashing
+import bcrypt
+
+def hash_password_secure(password):
+    # Generate salt and hash password
+    salt = bcrypt.gensalt(rounds=12)  # Adjust rounds based on security needs
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed
+
+def verify_password(password, hashed):
+    return bcrypt.checkpw(password.encode('utf-8'), hashed)
+
+# SECURE: Using AES-256 with GCM mode
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import os
+import base64
+
+def generate_key_from_password(password, salt=None):
+    if salt is None:
+        salt = os.urandom(16)
+    
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,  # Adjust based on security requirements
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    return Fernet(key), salt
+
+def encrypt_data(data, password):
+    cipher, salt = generate_key_from_password(password)
+    encrypted_data = cipher.encrypt(data.encode())
+    return base64.urlsafe_b64encode(salt + encrypted_data)
+
+def decrypt_data(encrypted_data, password):
+    encrypted_data = base64.urlsafe_b64decode(encrypted_data)
+    salt = encrypted_data[:16]
+    encrypted_content = encrypted_data[16:]
+    
+    cipher, _ = generate_key_from_password(password, salt)
+    decrypted_data = cipher.decrypt(encrypted_content)
+    return decrypted_data.decode()
+```
+
+### 2. Secure Key Management
+
+```python
+# SECURE: Using environment variables for secrets
+import os
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
+
+class SecureConfig:
+    def __init__(self):
+        # Use environment variables
+        self.api_key = os.getenv('API_KEY')
+        self.db_password = os.getenv('DB_PASSWORD')
+        
+        # Or use a key vault service
+        self.key_vault_url = os.getenv('KEY_VAULT_URL')
+        if self.key_vault_url:
+            credential = DefaultAzureCredential()
+            self.client = SecretClient(vault_url=self.key_vault_url, credential=credential)
+    
+    def get_secret(self, secret_name):
+        try:
+            secret = self.client.get_secret(secret_name)
+            return secret.value
+        except Exception as e:
+            raise ValueError(f"Failed to retrieve secret {secret_name}: {e}")
+
+# Usage
+config = SecureConfig()
+database_password = config.get_secret("database-password")
+```
+
+### 3. Secure Data Transmission
+
+```python
+# SECURE: Enforcing HTTPS and certificate validation
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+class SecureHTTPClient:
+    def __init__(self):
+        self.session = requests.Session()
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        
+        # Enforce certificate verification
+        self.session.verify = True
+        
+        # Set secure headers
+        self.session.headers.update({
+            'User-Agent': 'SecureApp/1.0',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        })
+    
+    def post_secure(self, url, data):
+        if not url.startswith('https://'):
+            raise ValueError("Only HTTPS URLs are allowed")
+        
+        response = self.session.post(url, json=data, timeout=30)
+        response.raise_for_status()
+        return response.json()
+
+# TLS configuration for Flask applications
+from flask import Flask
+from flask_talisman import Talisman
+
+app = Flask(__name__)
+
+# Enforce HTTPS and security headers
+Talisman(app, force_https=True, strict_transport_security=True)
+
+# Configure SSL context for production
+context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+context.load_cert_chain('cert.pem', 'key.pem')
+app.run(host='0.0.0.0', port=443, ssl_context=context)
+```
+
+### 4. Database Security
+
+```python
+# SECURE: Database encryption at rest and in transit
+import sqlalchemy
+from sqlalchemy_utils import EncryptedType
+from sqlalchemy_utils.types.encrypted.encrypted_type import AesEngine
+
+# Database connection with SSL
+engine = sqlalchemy.create_engine(
+    'postgresql://user:pass@localhost/db',
+    connect_args={
+        "sslmode": "require",
+        "sslcert": "client-cert.pem",
+        "sslkey": "client-key.pem",
+        "sslrootcert": "ca-cert.pem"
+    }
+)
+
+# Field-level encryption
+secret_key = os.getenv('DB_ENCRYPTION_KEY')
+
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), nullable=False)
+    
+    # Encrypted fields
+    email = Column(EncryptedType(String, secret_key, AesEngine, 'pkcs5'))
+    ssn = Column(EncryptedType(String, secret_key, AesEngine, 'pkcs5'))
+    credit_card = Column(EncryptedType(String, secret_key, AesEngine, 'pkcs5'))
+```
+
+### 5. Secure Configuration Management
+
+```yaml
+# docker-compose.yml - Using secrets
+version: '3.8'
+services:
+  web:
+    image: myapp:latest
+    secrets:
+      - db_password
+      - api_key
+    environment:
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - API_KEY_FILE=/run/secrets/api_key
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  api_key:
+    file: ./secrets/api_key.txt
+```
+
+```python
+# Loading secrets from files
+def load_secret(secret_name):
+    secret_file = os.getenv(f'{secret_name.upper()}_FILE')
+    if secret_file and os.path.exists(secret_file):
+        with open(secret_file, 'r') as f:
+            return f.read().strip()
+    return os.getenv(secret_name.upper())
+
+# Usage
+db_password = load_secret('db_password')
+api_key = load_secret('api_key')
+```
+
+## Testing and Validation
+
+### 1. Automated Security Testing
+
+```python
+# Security test for encryption validation
+import pytest
+from cryptography.fernet import Fernet
+
+class TestCryptographicSecurity:
+    def test_password_hashing_strength(self):
+        password = "TestPassword123!"
+        hashed = hash_password_secure(password)
+        
+        # Verify hash is different each time (salt is random)
+        hashed2 = hash_password_secure(password)
+        assert hashed != hashed2
+        
+        # Verify password verification works
+        assert verify_password(password, hashed)
+        assert not verify_password("WrongPassword", hashed)
+    
+    def test_encryption_strength(self):
+        plaintext = "Sensitive data that needs protection"
+        password = "StrongPassword123!"
+        
+        encrypted = encrypt_data(plaintext, password)
+        decrypted = decrypt_data(encrypted, password)
+        
+        assert decrypted == plaintext
+        assert encrypted != plaintext.encode()
+    
+    def test_https_enforcement(self):
+        client = SecureHTTPClient()
+        
+        # Should raise ValueError for HTTP URLs
+        with pytest.raises(ValueError):
+            client.post_secure("http://example.com/api", {"test": "data"})
+```
+
+### 2. SSL/TLS Testing
+
+```bash
+#!/bin/bash
+# SSL/TLS security testing script
+
+# Test SSL configuration
+echo "Testing SSL/TLS configuration..."
+testssl.sh --vulnerable --severity HIGH "$1"
+
+# Check for weak ciphers
+echo "Checking for weak ciphers..."
+nmap --script ssl-enum-ciphers -p 443 "$1"
+
+# Test certificate validation
+echo "Testing certificate..."
+echo | openssl s_client -connect "$1:443" -servername "$1" 2>/dev/null | openssl x509 -noout -dates
+```
+
+### 3. Configuration Validation
+
+```python
+# Security configuration checker
+import ssl
+import socket
+from urllib.parse import urlparse
+
+def check_ssl_configuration(url):
+    parsed = urlparse(url)
+    host = parsed.hostname
+    port = parsed.port or 443
+    
+    context = ssl.create_default_context()
+    
+    try:
+        with socket.create_connection((host, port), timeout=10) as sock:
+            with context.wrap_socket(sock, server_hostname=host) as ssock:
+                cert = ssock.getpeercert()
+                cipher = ssock.cipher()
+                version = ssock.version()
+                
+                print(f"SSL Version: {version}")
+                print(f"Cipher: {cipher}")
+                print(f"Certificate Subject: {cert['subject']}")
+                print(f"Certificate Expires: {cert['notAfter']}")
+                
+                # Check for strong cipher
+                if cipher[1] < 128:
+                    print("WARNING: Weak cipher detected!")
+                
+                return True
+    except Exception as e:
+        print(f"SSL check failed: {e}")
+        return False
+```
+
+## Real-World Examples
+
+### Case Study: Equifax Data Breach (2017)
+
+**Vulnerability**: Unpatched Apache Struts framework with cryptographic weaknesses
+**Impact**: 147 million people affected
+**Root Cause**: Weak encryption and poor key management
+**Lessons**: 
+- Keep cryptographic libraries updated
+- Implement proper certificate pinning
+- Use strong encryption for data at rest
+
+### Case Study: Marriott Data Breach (2018)
+
+**Vulnerability**: Weak encryption of customer data
+**Impact**: 500 million guests affected
+**Root Cause**: Data encrypted with weak algorithms, easily decryptable
+**Lessons**:
+- Use industry-standard encryption (AES-256)
+- Implement proper key rotation
+- Encrypt data in transit and at rest
+
+## Best Practices Checklist
+
+### Encryption
+- [ ] Use AES-256 for symmetric encryption
+- [ ] Use RSA-2048 or higher for asymmetric encryption
+- [ ] Implement proper key derivation (PBKDF2, Argon2)
+- [ ] Use authenticated encryption modes (GCM, CCM)
+
+### Key Management
+- [ ] Store keys separately from encrypted data
+- [ ] Implement key rotation policies
+- [ ] Use hardware security modules (HSMs) for production
+- [ ] Never hardcode secrets in source code
+
+### Transport Security
+- [ ] Enforce HTTPS everywhere
+- [ ] Use TLS 1.2 or higher
+- [ ] Implement certificate pinning
+- [ ] Disable weak cipher suites
+
+### Data Protection
+- [ ] Classify data sensitivity levels
+- [ ] Encrypt sensitive data at rest
+- [ ] Implement proper access controls
+- [ ] Use secure deletion methods
+
+## Conclusion
+
+Cryptographic failures remain a critical vulnerability because:
+
+1. **Complexity**: Cryptography is complex and easy to implement incorrectly
+2. **Legacy Systems**: Many systems use outdated cryptographic methods
+3. **Performance Trade-offs**: Organizations sometimes choose weak crypto for performance
+4. **Key Management**: Proper key management is often overlooked
+
+Prevention requires a comprehensive approach covering algorithm selection, implementation, key management, and ongoing monitoring. Remember: cryptography is only as strong as its weakest link.
+
+## References
+
+- [OWASP Top 10 2021 - A02 Cryptographic Failures](https://owasp.org/Top10/A02_2021-Cryptographic_Failures/)
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
+- [NIST Cryptographic Standards](https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines)

@@ -1,0 +1,370 @@
+---
+title: "OWASP Top 10 2021: A01 - Broken Access Control"
+description: "Understanding, exploiting, and preventing broken access control vulnerabilities with practical examples and detailed explanations."
+author: "Yugesh Mekala"
+date: "2024-01-15"
+categories: [OWASP Top 10, Access Control, Web Security, Vulnerability Assessment]
+page-layout: full
+title-block-banner: true
+---
+
+# OWASP Top 10 2021: A01 - Broken Access Control
+
+## Overview
+
+Broken Access Control vulnerabilities occur when an application fails to properly enforce permissions, allowing users to access resources or perform actions they shouldn't be authorized to do. This vulnerability jumped from the fifth position in 2017 to the top spot in 2021, making it the most critical web application security risk.
+
+## What is Access Control?
+
+Access control enforces policy such that users cannot act outside of their intended permissions. Common access control principles include:
+
+- **Principle of Least Privilege**: Users should only have the minimum access necessary
+- **Separation of Duties**: Critical operations should require multiple users
+- **Defense in Depth**: Multiple layers of access controls
+
+## Common Attack Scenarios
+
+### 1. Vertical Privilege Escalation
+
+```python
+# Vulnerable Code Example
+@app.route('/admin/users')
+def admin_users():
+    # Missing authorization check
+    users = get_all_users()
+    return render_template('admin_users.html', users=users)
+
+# Attack Vector
+# Regular user accesses: https://example.com/admin/users
+# Result: Gains administrative access without proper authorization
+```
+
+### 2. Horizontal Privilege Escalation
+
+```python
+# Vulnerable Code Example
+@app.route('/profile/<user_id>')
+def view_profile(user_id):
+    # No check if current user can access this profile
+    profile = get_user_profile(user_id)
+    return render_template('profile.html', profile=profile)
+
+# Attack Vector
+# User with ID 123 accesses: https://example.com/profile/456
+# Result: Views another user's private profile information
+```
+
+### 3. Direct Object Reference
+
+```javascript
+// Vulnerable AJAX Request
+function viewDocument(docId) {
+    fetch(`/api/documents/${docId}`)
+    .then(response => response.json())
+    .then(data => displayDocument(data));
+}
+
+// Attack Vector
+// Attacker modifies docId parameter to access unauthorized documents
+// Example: /api/documents/1337 (accessing sensitive document)
+```
+
+## Exploitation Techniques
+
+### Manual Testing
+
+1. **Parameter Manipulation**
+```bash
+# Original request
+GET /account/profile?user_id=1234
+
+# Modified request
+GET /account/profile?user_id=5678
+```
+
+2. **URL Path Manipulation**
+```bash
+# Normal user access
+GET /user/dashboard
+
+# Attempt admin access
+GET /admin/dashboard
+```
+
+3. **HTTP Method Manipulation**
+```bash
+# If POST is protected but GET isn't
+POST /api/users/1234/delete  # Returns 403 Forbidden
+GET /api/users/1234/delete   # Might succeed
+```
+
+### Automated Testing Tools
+
+```python
+# Python script for testing IDOR
+import requests
+
+base_url = "https://example.com/api/documents/"
+session = requests.Session()
+
+# Login as legitimate user
+session.post("https://example.com/login", data={"user": "user1", "pass": "pass1"})
+
+# Test access to other user's documents
+for doc_id in range(1, 1000):
+    response = session.get(f"{base_url}{doc_id}")
+    if response.status_code == 200:
+        print(f"Accessible document: {doc_id}")
+```
+
+## Prevention Strategies
+
+### 1. Implement Proper Authorization Checks
+
+```python
+# Secure Code Example
+from functools import wraps
+from flask import session, abort
+
+def require_admin(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('is_admin'):
+            abort(403)  # Forbidden
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin/users')
+@require_admin
+def admin_users():
+    users = get_all_users()
+    return render_template('admin_users.html', users=users)
+```
+
+### 2. Resource-Level Authorization
+
+```python
+# Secure Profile Access
+@app.route('/profile/<user_id>')
+@login_required
+def view_profile(user_id):
+    current_user = get_current_user()
+    
+    # Check if user can access this profile
+    if not can_access_profile(current_user, user_id):
+        abort(403)
+    
+    profile = get_user_profile(user_id)
+    return render_template('profile.html', profile=profile)
+
+def can_access_profile(current_user, target_user_id):
+    # Users can only access their own profile or public profiles
+    return (current_user.id == target_user_id or 
+            is_public_profile(target_user_id) or 
+            current_user.is_admin)
+```
+
+### 3. Implement RBAC (Role-Based Access Control)
+
+```python
+# RBAC Implementation
+class Permission:
+    READ_USER = 'read_user'
+    WRITE_USER = 'write_user'
+    DELETE_USER = 'delete_user'
+    ADMIN_ACCESS = 'admin_access'
+
+class Role:
+    def __init__(self, name, permissions):
+        self.name = name
+        self.permissions = set(permissions)
+
+# Define roles
+ROLES = {
+    'user': Role('user', [Permission.READ_USER]),
+    'moderator': Role('moderator', [Permission.READ_USER, Permission.WRITE_USER]),
+    'admin': Role('admin', [Permission.READ_USER, Permission.WRITE_USER, 
+                           Permission.DELETE_USER, Permission.ADMIN_ACCESS])
+}
+
+def require_permission(permission):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user = get_current_user()
+            user_role = ROLES.get(user.role)
+            
+            if not user_role or permission not in user_role.permissions:
+                abort(403)
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+@app.route('/admin/delete-user/<user_id>')
+@require_permission(Permission.DELETE_USER)
+def delete_user(user_id):
+    # Only users with DELETE_USER permission can access
+    delete_user_by_id(user_id)
+    return {"status": "success"}
+```
+
+### 4. Secure Direct Object References
+
+```python
+# Use UUIDs instead of sequential IDs
+import uuid
+
+class Document:
+    def __init__(self):
+        self.id = str(uuid.uuid4())  # Random UUID
+        self.owner_id = None
+        self.content = None
+
+# Access control with UUID
+@app.route('/documents/<document_id>')
+@login_required
+def get_document(document_id):
+    document = Document.query.filter_by(id=document_id).first_or_404()
+    
+    # Verify ownership
+    if document.owner_id != get_current_user().id:
+        abort(403)
+    
+    return render_template('document.html', document=document)
+```
+
+### 5. Implement Rate Limiting and Monitoring
+
+```python
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+@app.route('/sensitive-endpoint')
+@limiter.limit("5 per minute")
+@login_required
+def sensitive_endpoint():
+    # Rate limited sensitive operation
+    return perform_sensitive_operation()
+
+# Security event logging
+import logging
+
+security_logger = logging.getLogger('security')
+
+def log_access_attempt(user_id, resource, action, success):
+    security_logger.info(f"User {user_id} attempted {action} on {resource}: {'SUCCESS' if success else 'DENIED'}")
+
+@app.route('/admin/users')
+@require_admin
+def admin_users():
+    try:
+        users = get_all_users()
+        log_access_attempt(get_current_user().id, 'admin_users', 'READ', True)
+        return render_template('admin_users.html', users=users)
+    except Exception as e:
+        log_access_attempt(get_current_user().id, 'admin_users', 'READ', False)
+        raise
+```
+
+## Testing and Validation
+
+### Security Testing Checklist
+
+1. **Authentication Testing**
+   - [ ] Verify proper session management
+   - [ ] Test for session fixation
+   - [ ] Check password policy enforcement
+
+2. **Authorization Testing**
+   - [ ] Test vertical privilege escalation
+   - [ ] Test horizontal privilege escalation
+   - [ ] Verify role-based access controls
+
+3. **Resource Access Testing**
+   - [ ] Test direct object references
+   - [ ] Verify file access permissions
+   - [ ] Check API endpoint authorization
+
+### Automated Testing
+
+```python
+# Pytest example for access control testing
+import pytest
+from app import app, db
+from models import User, Document
+
+class TestAccessControl:
+    def setup_method(self):
+        self.client = app.test_client()
+        self.user1 = User(username='user1', role='user')
+        self.user2 = User(username='user2', role='user')
+        self.admin = User(username='admin', role='admin')
+        db.session.add_all([self.user1, self.user2, self.admin])
+        db.session.commit()
+    
+    def test_user_cannot_access_admin_panel(self):
+        # Login as regular user
+        self.client.post('/login', data={'username': 'user1', 'password': 'pass'})
+        
+        # Attempt to access admin panel
+        response = self.client.get('/admin/users')
+        assert response.status_code == 403
+    
+    def test_user_cannot_access_other_user_profile(self):
+        # Login as user1
+        self.client.post('/login', data={'username': 'user1', 'password': 'pass'})
+        
+        # Attempt to access user2's profile
+        response = self.client.get(f'/profile/{self.user2.id}')
+        assert response.status_code == 403
+    
+    def test_admin_can_access_admin_panel(self):
+        # Login as admin
+        self.client.post('/login', data={'username': 'admin', 'password': 'pass'})
+        
+        # Access admin panel
+        response = self.client.get('/admin/users')
+        assert response.status_code == 200
+```
+
+## Real-World Examples
+
+### Case Study: Facebook Photo Access (2018)
+
+Facebook discovered a vulnerability where users could access private photos of other users by manipulating photo IDs in API requests. The issue was caused by insufficient access control validation in their photo API.
+
+**Vulnerability**: Direct object reference without proper authorization
+**Impact**: 6.8 million users affected
+**Fix**: Implemented proper authorization checks before serving photo content
+
+### Case Study: Healthcare Portal IDOR
+
+A healthcare portal allowed patients to view lab results by changing the report ID in the URL, exposing other patients' medical records.
+
+**Vulnerability**: Sequential IDs with no access control
+**Impact**: HIPAA violation, data breach of 50,000+ records
+**Fix**: Implemented UUID-based identifiers and strict authorization checks
+
+## Conclusion
+
+Broken Access Control remains the #1 vulnerability in the OWASP Top 10 because it's fundamental to application security yet commonly overlooked. Prevention requires:
+
+1. **Design Security First**: Implement access controls from the beginning
+2. **Principle of Least Privilege**: Grant minimal necessary permissions
+3. **Regular Testing**: Continuously test authorization mechanisms
+4. **Monitoring**: Log and monitor access patterns for anomalies
+
+Remember: Access control is not a feature to be added later—it must be built into the foundation of your application architecture.
+
+## References
+
+- [OWASP Top 10 2021 - A01 Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/)
+- [OWASP Access Control Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
+- [NIST Access Control Guidelines](https://csrc.nist.gov/publications/detail/sp/800-162/final)

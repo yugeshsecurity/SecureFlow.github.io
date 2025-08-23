@@ -1,5 +1,85 @@
 /* Modern Footer Styles for SecureFlow - Quarto-compatible */
 
+/* ==============================================
+   FULL WIDTH LAYOUT OVERRIDE - HIGHEST PRIORITY
+   ============================================== */
+
+/* Override all width constraints for full layout pages */
+html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Force main content to use full width */
+html body.nav-fixed div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+html body div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Override listing container width restrictions */
+html body.nav-fixed .page-layout-full .quarto-listing-container-default,
+.page-layout-full .quarto-listing-container-default {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 1rem !important;
+}
+
+/* Override all column layout classes in full layout */
+html body.nav-fixed .page-layout-full .column-page,
+html body.nav-fixed .page-layout-full .column-page-left,
+html body.nav-fixed .page-layout-full .column-page-right,
+html body.nav-fixed .page-layout-full .column-body-outset,
+html body.nav-fixed .page-layout-full .column-page-inset,
+.page-layout-full .column-page,
+.page-layout-full .column-page-left,
+.page-layout-full .column-page-right,
+.page-layout-full .column-body-outset,
+.page-layout-full .column-page-inset {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Override any Bootstrap grid constraints */
+html body.nav-fixed .page-layout-full .container,
+html body.nav-fixed .page-layout-full .container-fluid,
+.page-layout-full .container,
+.page-layout-full .container-fluid {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Ensure listing content uses full width */
+html body.nav-fixed .page-layout-full .quarto-listing,
+html body.nav-fixed .page-layout-full #listing-listing,
+.page-layout-full .quarto-listing,
+.page-layout-full #listing-listing {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ==============================================
+   FOOTER STYLES
+   ============================================== */
+
 /* Target actual Quarto footer classes */
 .footer,
 footer.footer {

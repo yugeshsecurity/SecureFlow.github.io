@@ -324,6 +324,85 @@ div#quarto-content.quarto-container {
   padding: 0 2rem !important;
 }
 
+/* FULL WIDTH LAYOUT OVERRIDE - for page-layout: full */
+.page-layout-full .quarto-container,
+.page-layout-full div#quarto-content.quarto-container,
+.page-layout-full #quarto-content {
+  max-width: 100% !important;
+  padding: 0 1rem !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.page-layout-full main.content,
+.page-layout-full #quarto-document-content {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 1rem !important;
+}
+
+/* FORCE FULL WIDTH - Highest specificity */
+html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar,
+html body div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar,
+div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* FORCE MAIN CONTENT FULL WIDTH - Override column-page-left */
+html body.nav-fixed div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+html body div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+div#quarto-content.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+.page-layout-full main.content.quarto-banner-title-block.column-page-left,
+.page-layout-full main.content.column-page-left,
+.page-layout-full .column-page-left {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ENSURE ALL CONTENT ELEMENTS USE FULL WIDTH */
+.page-layout-full .content > *,
+.page-layout-full #quarto-document-content > * {
+  max-width: 100% !important;
+}
+
+/* POSTS PAGE SPECIFIC - LISTING CONTAINER FULL WIDTH */
+.page-layout-full .quarto-listing,
+.page-layout-full .quarto-listing-container,
+.page-layout-full #listing-listing {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* POSTS PAGE SPECIFIC - LISTING ACTIONS FULL WIDTH */
+.page-layout-full .listing-actions-group {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* OVERRIDE COLUMN LAYOUT CLASSES IN FULL LAYOUT */
+.page-layout-full .column-page,
+.page-layout-full .column-page-left,
+.page-layout-full .column-page-right,
+.page-layout-full .column-body-outset,
+.page-layout-full .column-page-inset {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
 /* Ensure main content uses full available width */
 main.content.quarto-banner-title-block.column-page-left,
 #quarto-document-content {
@@ -336,7 +415,7 @@ main.content.quarto-banner-title-block.column-page-left,
 /* Full width for specific content types */
 .page-layout-full .quarto-container {
   max-width: 100% !important;
-  padding: 0 2rem !important;
+  padding: 0 1rem !important;
 }
 
 /* Better article layout */
@@ -352,6 +431,16 @@ main.content.quarto-banner-title-block.column-page-left,
 /* Override Quarto's default layout completely */
 html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-contents.page-layout-full.page-navbar {
   padding-top: 90px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Standard layout (non-full) */
+html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-contents:not(.page-layout-full).page-navbar {
+  padding-top: 90px !important;
   padding-left: 2rem !important;
   padding-right: 2rem !important;
   max-width: 1200px !important;
@@ -361,12 +450,86 @@ html body.nav-fixed div#quarto-content.quarto-container.page-columns.page-rows-c
 /* Override Quarto's main content area */
 html body.nav-fixed div#quarto-content main.content.quarto-banner-title-block.column-page-left {
   padding-top: 20px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
   max-width: 100% !important;
   width: 100% !important;
+}
+
+/* ADDITIONAL FULL WIDTH ENFORCEMENT */
+.page-layout-full .container,
+.page-layout-full .container-fluid,
+.page-layout-full .container-lg,
+.page-layout-full .container-md,
+.page-layout-full .container-sm,
+.page-layout-full .container-xl,
+.page-layout-full .container-xxl {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* OVERRIDE ANY BOOTSTRAP CONTAINERS IN FULL LAYOUT */
+.page-layout-full * {
+  box-sizing: border-box !important;
+}
+
+.page-layout-full .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.page-layout-full .col,
+.page-layout-full [class*="col-"] {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+/* SIDEBAR - ALLOW DEFAULT QUARTO FLOATING TOC BEHAVIOR */
+.page-layout-full #quarto-margin-sidebar {
+  /* Allow default Quarto floating TOC positioning */
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+  padding: 1rem !important;
+  box-shadow: none !important;
+  /* Keep the width control for responsive design */
+}
+
+/* Categories will use the default styling from listing.css */
+
+/* REMOVE SIDEBAR SPACING FROM MAIN CONTENT - Use full width */
+.page-layout-full main.content {
+  padding-right: 1rem !important;
+  margin-right: 0 !important;
+  max-width: 100% !important;
+}
+
+/* ENSURE CONTENT USES FULL AVAILABLE WIDTH */
+.page-layout-full #quarto-document-content {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-right: 1rem !important;
+}
+
+@media (max-width: 1400px) {
+  .page-layout-full #quarto-margin-sidebar {
+    width: 200px !important;
+    max-width: 200px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .page-layout-full #quarto-margin-sidebar {
+    display: none !important;
+  }
+  
+  .page-layout-full main.content {
+    padding-right: 1rem !important;
+  }
 }
 
 /* Override Quarto's title area */
@@ -446,13 +609,24 @@ body {
 
 /* Container improvements for all Quarto themes */
 main.content,
-.quarto-container,
-#quarto-document-content {
+.quarto-container:not(.page-layout-full),
+#quarto-document-content:not(.page-layout-full) {
   width: 100% !important;
   max-width: 1200px !important;
   margin: 0 auto !important;
   padding-left: 20px !important;
   padding-right: 20px !important;
+}
+
+/* Full width layout containers */
+.page-layout-full main.content,
+.page-layout-full .quarto-container,
+.page-layout-full #quarto-document-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
 }
 
 /* Fix for specific Quarto layout classes */
