@@ -1,0 +1,37 @@
+/*
+  Custom CSS for the "Authentication and Authorization Best Practices" post.
+*/
+
+/* A box to highlight the difference between AuthN and AuthZ */
+.auth-definition {
+  background-color: #e7f3fe;
+  border-left: 6px solid #2196F3;
+  padding: 15px 20px;
+  margin: 20px 0;
+}
+
+.auth-definition strong {
+  color: #1a73e8;
+}
+
+/* Style for best practice lists */
+.best-practices-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.best-practices-list li {
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 15px;
+}
+
+.best-practices-list li::before {
+  content: '✓'; /* Checkmark symbol */
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #28a745; /* Green color for the checkmark */
+  font-size: 20px;
+  font-weight: bold;
+}

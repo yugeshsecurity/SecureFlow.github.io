@@ -1,0 +1,65 @@
+---
+title: "Testing the Fortress: An Introduction to DAST"
+author: "Jules"
+date: "2024-07-22"
+categories: [Application Security, DevSecOps, DAST, Security Testing]
+image: "image.jpg"
+---
+
+## Testing the Fortress: An Introduction to DAST
+
+In our [previous post](/posts/2024/june/sast-explained/), we explored how SAST inspects an application's blueprints (its source code) for flaws. Now, we'll look at a complementary approach that tests the finished structure from the outside: **Dynamic Application Security Testing (DAST)**.
+
+### What is DAST?
+
+DAST, also known as "black-box" testing, is a security testing methodology that examines an application from the outside, just as a real attacker would. It interacts with the running application over HTTP, sending a variety of malicious and unexpected requests to identify vulnerabilities.
+
+The key difference is that a DAST scanner has **no knowledge** of the application's internal workings. It doesn't know the programming language, the framework, or the source code.
+
+To return to our skyscraper analogy: if SAST is the blueprint review, DAST is hiring a team of penetration testers to try and break into the fully-built skyscraper. They jiggle the doors, pick the locks, and probe the walls, all without ever seeing the building's internal schematics.
+
+### How Does DAST Work?
+
+A DAST scan typically happens in two main phases:
+
+1.  **Crawling:** The scanner first needs to map out the application's attack surface. It starts from a base URL and "crawls" the application by following every link it can find. It discovers pages, forms, API endpoints, and all the different parameters the application accepts. This phase is critical—if the crawler can't find a page, the scanner can't test it.
+
+2.  **Attacking (or Fuzzing):** Once the crawler has built a map of the application, the attacking phase begins. The scanner systematically sends thousands of crafted, malicious payloads to every input point it discovered. It's looking for tell-tale signs of a vulnerability in the application's response.
+    *   To find **SQL Injection**, it might send a payload like `' OR 1=1--` and check if the response indicates a successful login or contains unexpected data.
+    *   To find **Cross-Site Scripting (XSS)**, it might send `<script>alert('DAST')</script>` and then check if that script is reflected back in the HTML response.
+    *   To find **Path Traversal**, it might try to access files like `../../../../etc/hosts`.
+
+### The Pros and Cons of DAST
+
+Like SAST, DAST has a unique set of strengths and weaknesses.
+
+**The Pros:**
+*   **Very Low False Positive Rate:** This is DAST's greatest strength. Because it finds vulnerabilities by actively eliciting a vulnerable response, if a DAST tool reports something, it's almost certainly a real, exploitable issue.
+*   **Language and Framework Agnostic:** DAST doesn't care about your tech stack. As long as it speaks HTTP, DAST can test it. This makes it incredibly versatile.
+*   **Finds Runtime and Configuration Issues:** DAST excels at finding problems that SAST can't see, such as insecure server headers, vulnerabilities in third-party components, or authentication bypasses that only manifest in a running environment.
+
+**The Cons:**
+*   **Requires a Running Application:** You can only run a DAST scan on a fully built and deployed application. This means it happens later in the development lifecycle, making bugs more expensive to fix.
+*   **Incomplete Coverage:** DAST's effectiveness is entirely dependent on its ability to crawl the application. It can easily miss pages hidden behind complex user journeys, areas requiring specific user roles, or modern JavaScript-heavy single-page applications (SPAs).
+*   **Vague Remediation Advice:** DAST can tell you *what* is wrong (e.g., "SQL Injection on login.php") but not *where* the problem is in the code. Developers have to manually trace the issue back to the vulnerable line, which can be time-consuming.
+
+### SAST vs. DAST: Better Together
+
+It should be clear that SAST and DAST are not competitors; they are partners. They find different types of vulnerabilities at different stages of the development lifecycle.
+
+| Feature             | SAST (White-Box)                        | DAST (Black-Box)                          |
+| ------------------- | --------------------------------------- | ----------------------------------------- |
+| **When?**           | Early (pre-build)                       | Late (post-deployment)                    |
+| **Input**           | Source Code                             | Running Application                       |
+| **False Positives** | High                                    | Low                                       |
+| **Strengths**       | Code Quality, Specific Location         | Runtime Issues, Config Errors             |
+| **Weaknesses**      | Can't find runtime issues               | Incomplete coverage, vague location       |
+
+A mature security program uses both: SAST for early, rapid feedback to developers, and DAST for broader, more realistic testing of the deployed application in a staging environment.
+
+### Conclusion
+
+DAST is a powerful tool for simulating real-world attacks and finding high-confidence vulnerabilities that other methods miss. While it's not a complete solution on its own, its black-box approach is an essential part of a layered, defense-in-depth security testing strategy.
+
+So far, we've looked at the security of our own code. But what about the code we don't write? In our next post, we'll tackle the growing challenge of open-source security with **Software Composition Analysis (SCA)**.
+---

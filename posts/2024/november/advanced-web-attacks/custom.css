@@ -1,0 +1,63 @@
+/*
+  Custom CSS for the "Advanced Web Application Attacks" post.
+*/
+
+/* A container for each major attack type */
+.attack-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5em 2em;
+  margin: 2.5em 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+  position: relative;
+}
+
+.attack-section h3 {
+  margin-top: 0;
+  font-size: 1.8em;
+  color: #333;
+}
+
+/* Add a pseudo-element to label the attack type */
+.attack-section::before {
+  content: attr(data-attack-type);
+  position: absolute;
+  top: 10px;
+  right: -30px;
+  background-color: #dc3545; /* Red */
+  color: white;
+  padding: 5px 30px;
+  font-weight: bold;
+  transform: rotate(45deg);
+  font-size: 0.9em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Specific colors for different attacks if desired */
+.attack-ssrf::before {
+  background-color: #fd7e14; /* Orange */
+}
+
+.attack-xxe::before {
+  background-color: #6f42c1; /* Purple */
+}
+
+.attack-deser::before {
+  background-color: #343a40; /* Dark */
+}
+
+/* Highlighting the defense sections */
+.defense-strategies {
+  background-color: #f0fff4;
+  border: 1px solid #c3e6cb;
+  border-left: 5px solid #28a745;
+  padding: 1em 1.5em;
+  margin-top: 1.5em;
+  border-radius: 5px;
+}
+
+.defense-strategies h4 {
+  color: #155724; /* Dark green */
+  margin-top: 0;
+}

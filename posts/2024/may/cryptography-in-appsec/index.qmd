@@ -1,0 +1,107 @@
+---
+title: "Cryptography in Application Security"
+author: "Jules"
+date: "2024-05-25"
+categories: [Application Security, Cryptography, Encryption, Hashing]
+image: "image.jpg"
+---
+
+## A Developer's Guide to Cryptography
+
+Cryptography is the bedrock of modern digital security. It protects our data, secures our communications, and verifies our identities. But for many developers, "crypto" can feel like a black box filled with complex math. This post aims to demystify the core concepts of cryptography that every developer should understand.
+
+Before we begin, let's get the most important rule out of the way.
+
+### The Golden Rule: Don't Roll Your Own Crypto
+
+You will hear this from every security professional, and for good reason. Implementing cryptographic algorithms correctly is extraordinarily difficult. A tiny mistake can render an entire system insecure. Always use well-vetted, standard, and up-to-date cryptographic libraries and protocols. Your job is to be a good chef, not to forge your own knives.
+
+### The Core Primitives
+
+Let's break down the fundamental building blocks of cryptography.
+
+#### 1. Hashing: The Digital Fingerprint
+
+A cryptographic hash function is an algorithm that takes an input (of any size) and produces a fixed-size string of bytes, known as the "hash" or "digest."
+
+**Key Properties:**
+*   **Deterministic:** The same input will always produce the same output.
+*   **One-Way:** It is computationally infeasible to reverse the process and find the original input from its hash (preimage resistance).
+*   **Collision Resistant:** It is extremely difficult to find two different inputs that produce the same hash.
+
+**Common Use Cases:**
+*   **Password Storage:** As discussed previously, you store hashes of passwords, not the passwords themselves. Use algorithms designed for this, like **bcrypt** or **Argon2**.
+*   **Data Integrity:** You can provide a hash of a file (a checksum) allowing users to verify that the file has not been tampered with during download. **SHA-256** is a common choice here.
+
+#### 2. Symmetric Encryption: The Shared Secret
+
+Symmetric encryption uses a **single key** to both encrypt and decrypt data. Think of it as a physical lockbox: the same key locks and unlocks it.
+
+**How it Works:**
+`Plaintext -> (Encrypt with Key) -> Ciphertext`
+`Ciphertext -> (Decrypt with Key) -> Plaintext`
+
+**Key Characteristics:**
+*   **Fast:** Symmetric algorithms are very efficient, making them ideal for encrypting large amounts of data.
+*   **The Challenge:** The biggest difficulty is **key exchange**. How do you securely share the secret key with the party you want to communicate with? If an attacker intercepts the key, they can decrypt everything.
+
+**Common Algorithm:** **AES (Advanced Encryption Standard)** is the global standard for symmetric encryption.
+
+#### 3. Asymmetric Encryption: The Public/Private Key Pair
+
+Asymmetric encryption (or public-key cryptography) solves the key exchange problem by using a **pair of keys**: a public key and a private key.
+
+*   **Public Key:** You can share this with anyone. It can only be used to encrypt data or verify a digital signature.
+*   **Private Key:** You must keep this secret. It's the only key that can decrypt data encrypted with your public key or create a digital signature.
+
+Analogy: The public key is an open mailbox. Anyone can put a message inside, but only you, with the private key, can open the mailbox and read the messages.
+
+**Common Algorithms:** **RSA** and **Elliptic Curve Cryptography (ECC)**. ECC is newer and provides the same level of security with smaller key sizes, making it more efficient.
+
+### Digital Signatures: The Trifecta of Security
+
+What happens when you combine hashing and asymmetric encryption? You get a digital signature, which provides three crucial security guarantees:
+
+*   **Authentication:** Verifies the identity of the sender.
+*   **Integrity:** Ensures the message has not been altered.
+*   **Non-repudiation:** The sender cannot later deny having sent the message.
+
+**How it Works:**
+1.  **Signing:** The sender hashes the message and then **encrypts the hash** with their **private key**. This encrypted hash is the signature.
+2.  **Verification:** The receiver gets the message and the signature. They decrypt the signature with the sender's **public key** to get the original hash. Then, they hash the message themselves. If the two hashes match, the signature is valid.
+
+JWTs are a great example: the signature on a JWT ensures that the claims in the payload are authentic and have not been tampered with.
+
+### Practical Example: Symmetric Encryption in Python
+
+Let's see how to use a high-level library to do this right. We'll use Python's `cryptography` library with Fernet, which provides authenticated symmetric encryption.
+
+```python
+from cryptography.fernet import Fernet
+
+# 1. Generate a key (do this once and store it securely!)
+key = Fernet.generate_key()
+
+# 2. Create a Fernet instance with the key
+f = Fernet(key)
+
+# 3. Encrypt your data
+original_data = b"This is a secret message."
+token = f.encrypt(original_data)
+
+print(f"Token: {token}")
+
+# 4. Decrypt your data
+decrypted_data = f.decrypt(token)
+
+print(f"Decrypted: {decrypted_data}")
+assert original_data == decrypted_data
+```
+This is how you should handle encryption: using a secure, high-level recipe from a trusted library.
+
+### Conclusion
+
+Understanding the roles of hashing, symmetric encryption, and asymmetric encryption is vital for any developer. These primitives are the foundation of protocols like TLS that secure the internet. Always remember the golden rule: use established libraries and protocols. Your goal is to be a skilled user of these powerful tools, not to reinvent them.
+
+Next up, we'll shift our focus from writing secure code to finding flaws in it, as we explore **Static Application Security Testing (SAST)**.
+---
