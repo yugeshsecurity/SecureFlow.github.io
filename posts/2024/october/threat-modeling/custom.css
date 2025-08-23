@@ -1,0 +1,61 @@
+/*
+  Custom CSS for the "Threat Modeling" post.
+*/
+
+/* Style for the four questions section */
+.four-questions ol {
+  list-style-type: none;
+  counter-reset: question-counter;
+  padding-left: 0;
+}
+
+.four-questions li {
+  counter-increment: question-counter;
+  margin-bottom: 1em;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-left: 5px solid #007bff;
+}
+
+.four-questions li::before {
+  content: counter(question-counter);
+  font-weight: bold;
+  font-size: 1.5em;
+  color: #007bff;
+  margin-right: 10px;
+}
+
+/* Styling for the STRIDE mnemonic */
+.stride-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.stride-list li {
+  margin-bottom: 1em;
+  padding-left: 2.5em;
+  position: relative;
+}
+
+.stride-list li::before {
+  content: attr(data-letter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.8em;
+  height: 1.8em;
+  line-height: 1.8em;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  background-color: #6c757d; /* Gray */
+  border-radius: 50%;
+}
+
+/* Add a specific color for each letter if desired */
+.stride-list .s::before { background-color: #dc3545; } /* Red */
+.stride-list .t::before { background-color: #ffc107; } /* Yellow */
+.stride-list .r::before { background-color: #fd7e14; } /* Orange */
+.stride-list .i::before { background-color: #007bff; } /* Blue */
+.stride-list .d::before { background-color: #6f42c1; } /* Purple */
+.stride-list .e::before { background-color: #28a745; } /* Green */

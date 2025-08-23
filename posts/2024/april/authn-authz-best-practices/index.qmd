@@ -1,0 +1,98 @@
+---
+title: "Authentication and Authorization Best Practices"
+author: "Jules"
+date: "2024-04-20"
+categories: [Application Security, Authentication, Authorization, OAuth, JWT]
+image: "image.jpg"
+---
+
+## Authentication and Authorization Best Practices
+
+In our last chapter on [Secure Coding Fundamentals](/posts/2024/march/secure-coding-fundamentals/), we laid the groundwork for writing safer code. Now, we tackle two of the most critical concepts in application security: **Authentication (AuthN)** and **Authorization (AuthZ)**.
+
+It's essential to understand the difference:
+*   **Authentication** is the process of verifying who you are. It's the bouncer at the door checking your ID.
+*   **Authorization** is the process of determining what you are allowed to do. Once you're inside, authorization decides whether you have access to the VIP lounge.
+
+Getting either of these wrong can lead to catastrophic security breaches. Let's explore the best practices for implementing them correctly.
+
+### Modern Authentication and Identity Standards
+
+Before we dive into best practices, it's important to be familiar with the modern standards that underpin secure authentication and authorization on the web.
+
+#### OAuth 2.0: The Standard for Delegated Authorization
+OAuth 2.0 is not an authentication protocol; it's an **authorization framework**. It allows a user to grant a third-party application limited access to their resources on another service, without sharing their credentials. For example, when you allow a photo printing service to access your photos from Google Photos, you are likely using OAuth 2.0.
+
+#### OpenID Connect (OIDC): Authentication on Top of OAuth 2.0
+OIDC is a thin identity layer built on top of OAuth 2.0. It's what adds the authentication piece. When a client uses OIDC, it receives an **ID Token** in addition to the access token. The ID Token is a JSON Web Token (JWT) that contains information about the authenticated user, such as their user ID, email, and when they logged in. This is the standard that powers "Log in with Google" or "Log in with GitHub."
+
+#### JSON Web Tokens (JWTs)
+A JWT is a compact, URL-safe means of representing claims to be transferred between two parties. In the context of AuthN/AuthZ, a JWT is often used as an **access token**. It contains a payload of "claims" (e.g., user ID, roles) and is digitally signed by the server. This signature allows any service that trusts the server to verify that the token is authentic and has not been tampered with.
+
+### Core Authentication Best Practices
+
+1.  **Implement Strong Password Policies:**
+    *   **Length over Complexity:** Encourage users to create longer passphrases (e.g., minimum 12-15 characters).
+    *   **Check Against Breached Passwords:** Use a service like Have I Been Pwned's Pwned Passwords API to prevent users from choosing passwords that are already known to be compromised.
+    *   **Store Hashes, Not Passwords:** As we covered in the last post, always use a strong, salted, and slow hashing algorithm like bcrypt or Argon2.
+
+2.  **Enforce Multi-Factor Authentication (MFA):**
+    MFA is arguably the single most effective control you can implement to prevent unauthorized access. Even if an attacker steals a user's password, they won't be able to log in without the second factor. Support a range of MFA options, such as:
+    *   **Authenticator Apps:** (TOTP) like Google Authenticator or Authy.
+    *   **Security Keys:** (FIDO2/WebAuthn) like YubiKey.
+    *   **Push Notifications:** To a trusted mobile device.
+
+3.  **Secure Session Management:**
+    Once a user is authenticated, you need to manage their session securely.
+    *   **Generate Secure Session IDs:** Use a cryptographically secure random number generator to create long and unpredictable session identifiers.
+    *   **Use Secure Cookie Flags:** When storing the session ID in a cookie, set the following flags:
+        *   `HttpOnly`: Prevents the cookie from being accessed by client-side scripts, mitigating XSS.
+        *   `Secure`: Ensures the cookie is only sent over HTTPS.
+        *   `SameSite=Strict` or `SameSite=Lax`: Helps protect against Cross-Site Request Forgery (CSRF).
+    *   **Implement Session Timeouts:** Have both an idle timeout (e.g., 15 minutes of inactivity) and an absolute timeout (e.g., 8 hours).
+
+### Core Authorization Best Practices
+
+1.  **Always Enforce Authorization on the Server-Side:**
+    Never rely on your client-side code (e.g., hiding a button in JavaScript) to enforce permissions. An attacker can always bypass client-side controls by directly calling your API. The server must validate that the authenticated user has the necessary permissions for every single request.
+
+2.  **Prevent Insecure Direct Object References (IDOR):**
+    IDOR is a type of authorization vulnerability where an attacker can gain access to unauthorized data by simply changing the value of an ID in a request.
+
+    **Vulnerable Example (Flask/Python):**
+    ```python
+    @app.route('/orders')
+    def get_order():
+        order_id = request.args.get('id')
+        # Attacker can change 'id' to view anyone's order
+        order = db.get_order_by_id(order_id)
+        return render_template('order_details.html', order=order)
+    ```
+
+    **Secure Example:**
+    ```python
+    @app.route('/orders')
+    @login_required # Assume this gives us a 'current_user' object
+    def get_order():
+        order_id = request.args.get('id')
+        order = db.get_order_by_id(order_id)
+
+        # CRITICAL CHECK: Does the order belong to the logged-in user?
+        if order is None or order.user_id != current_user.id:
+            return "Not Found", 404 # Or "Forbidden", 403
+
+        return render_template('order_details.html', order=order)
+    ```
+
+3.  **Use Role-Based Access Control (RBAC) or Finer-Grained Policies:**
+    For most applications, RBAC is a great starting point. Define a set of roles (e.g., `admin`, `editor`, `viewer`) and assign permissions to those roles. This is much easier to manage than assigning permissions to individual users. For more complex scenarios, you might need attribute-based access control (ABAC).
+
+4.  **Deny by Default:**
+    Follow the principle of least privilege. A user should have no access until they are explicitly granted it.
+
+### Conclusion
+
+Authentication and authorization are the cornerstones of a secure application. By leveraging modern standards like OAuth 2.0 and OIDC, and by rigorously applying best practices for handling credentials, sessions, and permissions, you can build a strong defense against unauthorized access. Always remember to check credentials (AuthN) and verify permissions (AuthZ) on every sensitive request.
+
+In our next post, we will venture into the world of **Cryptography in Application Security**, demystifying the concepts of encryption, hashing, and digital signatures.
+---

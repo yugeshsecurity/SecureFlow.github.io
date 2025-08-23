@@ -1,0 +1,165 @@
+---
+title: "Secure Coding Fundamentals"
+author: "Jules"
+date: "2024-03-15"
+categories: [Application Security, Secure Coding, OWASP]
+image: "image.jpg"
+---
+
+## Secure Coding Fundamentals
+
+Welcome back to our series on Application Security. In our [previous post](/posts/2024/february/intro-to-appsec), we introduced the core concepts of AppSec. Now, it's time to roll up our sleeves and get practical. This post is dedicated to **Secure Coding Fundamentals**—the essential practices every developer should know to build safer software from the ground up.
+
+Writing secure code is not about becoming a security expert overnight. It's about adopting a security-first mindset and applying a set of core principles to your daily work. Let's dive in.
+
+### The Principle of Least Privilege
+
+If you remember one thing from this post, make it this: **grant only the permissions necessary for a component to perform its function, and no more.** This is the Principle of Least Privilege.
+
+Why is it so important? If a component is compromised, the principle of least privilege limits the damage an attacker can do.
+
+*   **User Accounts:** A user should only have access to the data and features they absolutely need. An admin should be an admin, but a regular user should not.
+*   **Application Services:** If your application uses a database, its service account shouldn't have administrative privileges on the database server. It should only be able to perform the specific CRUD (Create, Read, Update, Delete) operations it needs on the specific tables it uses.
+*   **File Permissions:** Application processes should not run with root or administrator privileges unless absolutely necessary.
+
+### Input Validation: The Golden Rule
+
+Here is the golden rule of secure coding: **Never trust user input.** All data that comes from an external source—whether it's a user filling out a form, an API request, or a file upload—must be treated as potentially malicious.
+
+**Input validation** is the process of ensuring that input is well-formed and conforms to expectations before it is processed. This is your first line of defense against a wide range of attacks.
+
+Consider a user profile page where a user can set their age. What should you validate?
+
+*   **Type:** The age should be an integer.
+*   **Range:** The age should be realistic (e.g., between 0 and 120).
+*   **Format:** It should not contain any special characters or scripts.
+
+#### Example: Python Input Validation
+
+Let's look at a simple Flask example in Python.
+
+**Insecure (No Validation):**
+```python
+from flask import request
+
+@app.route('/set_age')
+def set_user_age():
+    user_id = request.args.get('user_id')
+    age = request.args.get('age') # Direct input, no validation
+    db.execute(f"UPDATE users SET age = {age} WHERE id = {user_id}") # Vulnerable to SQLi
+    return "Age updated."
+```
+
+**Secure (With Validation):**
+```python
+from flask import request
+
+@app.route('/set_age')
+def set_user_age():
+    user_id = request.args.get('user_id')
+    age_str = request.args.get('age')
+
+    # 1. Type and Range validation
+    try:
+        age = int(age_str)
+        if not (0 < age < 120):
+            return "Invalid age range.", 400
+    except (ValueError, TypeError):
+        return "Invalid age format.", 400
+
+    # 2. Use parameterized queries (see below)
+    db.execute("UPDATE users SET age = ? WHERE id = ?", (age, user_id))
+    return "Age updated."
+```
+
+### Deep Dive: Common Vulnerabilities
+
+Let's explore a few of the most common code-level vulnerabilities.
+
+#### A03:2021 - Injection
+
+Injection flaws are the classic example of what happens when you trust user input. **SQL Injection (SQLi)** is the most well-known variant.
+
+**Vulnerable SQL Query:**
+Imagine a login form. The code might construct a query like this:
+```sql
+query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "';"
+```
+If an attacker enters `' OR '1'='1` as the username, the query becomes:
+```sql
+SELECT * FROM users WHERE username = '' OR '1'='1' AND password = '...';
+```
+The `OR '1'='1'` condition is always true, and the attacker might log in as the first user in the database without a password.
+
+**The Fix: Parameterized Queries (Prepared Statements)**
+You should **always** use parameterized queries. This separates the query logic from the data, so the database treats the user input as literal data, not as part of the SQL command.
+
+**Secure Python `sqlite3` Example:**
+```python
+import sqlite3
+
+conn = sqlite3.connect('example.db')
+cursor = conn.cursor()
+
+# The '?' is a placeholder. The database driver handles escaping.
+cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+user = cursor.fetchone()
+```
+
+#### A07:2021 - Identification and Authentication Failures
+
+One of the most critical mistakes in this category is **improper password storage**. You must never store passwords in plaintext.
+
+**The Wrong Way:**
+```sql
+INSERT INTO users (username, password) VALUES ('jules', 'P@ssw0rd123');
+```
+If your database is breached, every user's password is now exposed.
+
+**The Right Way: Hashing with a Strong Algorithm**
+Passwords should be hashed with a strong, salted, and slow hashing algorithm like **bcrypt**, **scrypt**, or **Argon2**.
+
+**Secure Python `bcrypt` Example:**
+```python
+import bcrypt
+
+password = b"P@ssw0rd123"
+
+# 1. Generate a salt and hash the password
+salt = bcrypt.gensalt()
+hashed_password = bcrypt.hashpw(password, salt)
+
+# Store hashed_password in the database (it's a binary field)
+
+# 2. To verify a login
+user_entered_password = b"P@ssw0rd123"
+if bcrypt.checkpw(user_entered_password, stored_hashed_password):
+    print("Login successful!")
+else:
+    print("Invalid password.")
+```
+
+### Secure Error Handling
+
+Be careful what you tell your users—and potential attackers. Verbose error messages can leak sensitive information about your application's inner workings.
+
+**Insecure Error Message:**
+```
+ERROR: Connection refused: could not connect to server: Connection refused.
+Is the server running on host "db-prod.internal.corp" (10.0.1.55) and accepting
+TCP/IP connections on port 5432?
+```
+This error reveals your internal database host, its IP address, and the port it's running on.
+
+**Secure Error Message:**
+```
+An unexpected error occurred. Please try again later.
+```
+Log the detailed error internally for debugging, but show the user a generic message.
+
+### Conclusion
+
+Secure coding is a habit, not a destination. By consistently applying principles like least privilege, validating all input, using secure defaults like parameterized queries, and handling errors gracefully, you can dramatically reduce the attack surface of your applications.
+
+In our next post, we'll build on these concepts and take a deep dive into **Authentication and Authorization Best Practices**, exploring how to securely manage who can access your application and what they can do.
+---
