@@ -1,7 +1,7 @@
 # Netlify configuration for DevToDefend Quarto site
 [build]
 publish = "_site"
-command = "npm run build"
+# No build command needed - the Quarto plugin handles everything
 
 # Use Quarto Netlify Build Plugin to render on Netlify servers
 [[plugins]]
@@ -46,8 +46,8 @@ status = 301
 force = true
 
 # Deploy previews configuration
-[deploy-preview]
-command = "npm run build"
+[context.deploy-preview]
+# No build command needed - the Quarto plugin handles everything
 
 # Branch deploy configuration
 [context.branch-deploy]

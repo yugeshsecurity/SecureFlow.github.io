@@ -19,11 +19,10 @@
     "url": "https://github.com/yugeshsecurity/DevToDefend.git"
   },
   "scripts": {
-    "build": "quarto render",
+    "build": "echo 'Build handled by Quarto Netlify plugin'",
     "dev": "quarto preview",
     "preview": "quarto preview --port 3000",
-    "clean": "rm -rf _site",
-    "prebuild": "npm run clean"
+    "clean": "rm -rf _site"
   },
   "dependencies": {
     "@quarto/netlify-plugin-quarto": "^0.0.5"

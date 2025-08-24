@@ -77,23 +77,25 @@ quarto render
 ## 🚀 Deployment
 
 ### Netlify (Primary)
-The site automatically deploys to Netlify on every push to the main branch.
+The site automatically deploys to Netlify using the official Quarto plugin.
 
 **Setup:**
 1. Connect your GitHub repo to Netlify
-2. Build settings are configured in `netlify.toml`
-3. See `NETLIFY_DEPLOYMENT.md` for detailed instructions
+2. Configuration is in `netlify.toml` and `package.json`
+3. The `@quarto/netlify-plugin-quarto` plugin handles everything automatically
+4. No build command needed - plugin installs Quarto and renders the site
+
+**Configuration Features:**
+- Automatic Quarto installation and rendering
+- Security headers (CSP, XSS protection, frame options)
+- Asset caching (1-year for CSS/JS/images)
+- Deploy previews for pull requests
 
 ### GitHub Pages (Backup)
-Alternative deployment method using GitHub Actions.
+Alternative deployment method using GitHub Actions with manual Quarto setup.
 
-**Manual Deploy:**
-```bash
-# Build and deploy
-./deploy.sh  # Linux/Mac
-# or
-deploy.bat   # Windows
-```
+**No Manual Deploy Needed:**
+The Netlify plugin handles all build steps automatically.
 
 ## 📄 Publishing New Content
 
