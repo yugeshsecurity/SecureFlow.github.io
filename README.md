@@ -1,6 +1,6 @@
-# SecureFlow - Cybersecurity Blog
+# DevToDefend - Cybersecurity Blog
 
-[![Render and Publish](https://github.com/yugeshsecurity/SecureFlow/actions/workflows/quarto-publish.yml/badge.svg)](https://github.com/yugeshsecurity/SecureFlow/actions/workflows/quarto-publish.yml)
+[![Render and Publish](https://github.com/yugeshsecurity/DevToDefend/actions/workflows/quarto-publish.yml/badge.svg)](https://github.com/yugeshsecurity/DevToDefend/actions/workflows/quarto-publish.yml)
 
 🛡️ **Empowering Security Engineers with Deep Technical Insights**
 
@@ -8,7 +8,8 @@ A modern cybersecurity blog covering application security, penetration testing, 
 
 ## 🌐 Live Site
 
-Visit: [https://yugeshsecurity.github.io/SecureFlow/](https://yugeshsecurity.github.io/SecureFlow/)
+- **Production**: [https://devtodefend.netlify.app](https://devtodefend.netlify.app) (Netlify)
+- **GitHub Pages**: [https://yugeshsecurity.github.io/DevToDefend/](https://yugeshsecurity.github.io/DevToDefend/) (Backup)
 
 ## 🚀 Features
 
@@ -40,7 +41,7 @@ Visit: [https://yugeshsecurity.github.io/SecureFlow/](https://yugeshsecurity.git
 ## 📁 Project Structure
 
 ```
-SecureFlow/
+DevToDefend/
 ├── assets/              # Static assets
 │   ├── css/            # Stylesheets
 │   └── logo/           # Brand assets
@@ -63,14 +64,35 @@ SecureFlow/
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yugeshsecurity/SecureFlow.git
-cd SecureFlow
+git clone https://github.com/yugeshsecurity/DevToDefend.git
+cd DevToDefend
 
 # Preview the site locally
 quarto preview
 
 # Build the site
 quarto render
+```
+
+## 🚀 Deployment
+
+### Netlify (Primary)
+The site automatically deploys to Netlify on every push to the main branch.
+
+**Setup:**
+1. Connect your GitHub repo to Netlify
+2. Build settings are configured in `netlify.toml`
+3. See `NETLIFY_DEPLOYMENT.md` for detailed instructions
+
+### GitHub Pages (Backup)
+Alternative deployment method using GitHub Actions.
+
+**Manual Deploy:**
+```bash
+# Build and deploy
+./deploy.sh  # Linux/Mac
+# or
+deploy.bat   # Windows
 ```
 
 ## 📄 Publishing New Content
@@ -107,8 +129,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **GitHub**: [Your GitHub Profile](https://github.com/yugeshsecurity)
 - **LinkedIn**: [Your LinkedIn Profile](https://linkedin.com/in/your-profile)
-- **RSS**: [RSS Feed](https://yugeshsecurity.github.io/SecureFlow/index.xml)
+- **RSS**: [RSS Feed](https://yugeshsecurity.github.io/DevToDefend/index.xml)
 
 ---
 
-**SecureFlow** - Building security into every layer of the digital world.
+**DevToDefend** - Building security into every layer of the digital world.

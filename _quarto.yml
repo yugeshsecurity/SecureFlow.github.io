@@ -1,12 +1,16 @@
 project:
   type: website
 
+# Freeze computations for Netlify deployment
+execute:
+  freeze: auto
+
 website:
-  title: "SecureFlow"
+  title: "DevToDefend"
   description: "Where Code Meets Defense"
   navbar:
-    logo: "assets/logo/secureflow-logo.svg"
-    title: "SecureFlow"
+    logo: "assets/logo/devtodefend-logo.svg"
+    title: "DevToDefend"
     href: "index.qmd"
     background: "#1a1a2e"
     foreground: "#ffffff"
@@ -48,11 +52,11 @@ website:
         aria-label: "RSS Feed"
   page-footer:
     left: |
-      **SecureFlow** - Where Code Meets Defense  
+      **DevToDefend** - Where Code Meets Defense  
       
       Created by **Yugesh Mekala**  
       
-      © 2025 SecureFlow. All rights reserved.
+      © 2025 DevToDefend. All rights reserved.
     center: |
       [Privacy Policy](privacy.html) • [Terms of Service](terms.html) • [Contact](contact.html)
     right:

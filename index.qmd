@@ -66,7 +66,7 @@ format:
 ::: {.hero-section}
 ::: {.hero-content}
 
-# SecureFlow
+# DevToDefend
 **Where Code Meets Defense**
 
 **Empowering Security Engineers with Deep Technical Insights**
@@ -179,7 +179,7 @@ Security as code, CI/CD security integration, and automated security testing. Bu
 ::: {.value-proposition}
 ::: {.value-content}
 
-## Why Choose SecureFlow?
+## Why Choose DevToDefend?
 
 ::: {.value-grid}
 
@@ -270,7 +270,7 @@ Practical Python scripts every security professional should know including netwo
 ::: {.post-content}
 <p class="post-date">January 1, 2024</p>
 
-### Welcome to SecureFlow
+### Welcome to DevToDefend
 
 Your journey into cybersecurity excellence begins here - comprehensive platform for cybersecurity professionals and enthusiasts.
 

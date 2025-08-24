@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 Starting SecureFlow deployment...
+echo 🚀 Starting DevToDefend deployment...
 
 REM Check if Quarto is installed
 quarto --version >nul 2>&1
@@ -30,7 +30,7 @@ if %errorlevel% equ 0 (
     echo 2. Enable GitHub Pages in repository settings
     echo 3. Set source to 'Deploy from a branch' and select 'main' branch, 'docs' folder
     echo.
-    echo 🌐 Your site will be available at: https://yugeshsecurity.github.io/SecureFlow/
+    echo 🌐 Your site will be available at: https://yugeshsecurity.github.io/DevToDefend/
 ) else (
     echo ❌ Build failed. Check the error messages above.
     pause

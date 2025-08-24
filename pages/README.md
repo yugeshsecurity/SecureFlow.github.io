@@ -1,11 +1,11 @@
-# SecureFlow Project Structure
+# DevToDefend Project Structure
 
 ## Overview
 This project is organized for scalable, modern security blogging with a focus on AppSec, web app security, pentesting, and ethical hacking. 
 
 ## Structure
 - `assets/` — All static assets (logo, CSS, animations)
-  - `logo/` — SecureFlow logo and related assets
+  - `logo/` — DevToDefend logo and related assets
   - `css/` — Global and page-specific styles
   - `animations/` — Animations for blogs and UI
 - `pages/` — All site pages

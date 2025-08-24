@@ -1,0 +1,36 @@
+{
+  "name": "devtodefend",
+  "version": "1.0.0",
+  "description": "DevToDefend - Where Code Meets Defense. A comprehensive cybersecurity blog built with Quarto.",
+  "keywords": [
+    "cybersecurity",
+    "quarto",
+    "security",
+    "devops",
+    "pentesting",
+    "web-security",
+    "application-security"
+  ],
+  "author": "Yugesh Mekala",
+  "license": "MIT",
+  "homepage": "https://devtodefend.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yugeshsecurity/DevToDefend.git"
+  },
+  "scripts": {
+    "build": "quarto render",
+    "dev": "quarto preview",
+    "preview": "quarto preview --port 3000",
+    "clean": "rm -rf _site",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "@quarto/netlify-plugin-quarto": "^0.0.5"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,6 +1,6 @@
 ---
 title: "About"
-subtitle: "Meet the Security Professional Behind SecureFlow"
+subtitle: "Meet the Security Professional Behind DevToDefend"
 page-layout: full
 title-block-banner: true
 css: 
@@ -147,7 +147,7 @@ format:
 **🚀 Transforming Complex Security Challenges into Clear, Actionable Solutions**
 
 ::: {.profile-tagline}
-Welcome to SecureFlow! I'm passionate about demystifying cybersecurity for professionals at every level. Through detailed analysis, hands-on tutorials, and real-world case studies, I help security teams stay ahead of evolving threats.
+Welcome to DevToDefend! I'm passionate about demystifying cybersecurity for professionals at every level. Through detailed analysis, hands-on tutorials, and real-world case studies, I help security teams stay ahead of evolving threats.
 :::
 
 :::
@@ -230,12 +230,12 @@ I'm a cybersecurity professional dedicated to making complex security concepts a
 :::
 :::
 
-::: {.section .secureflow-mission}
-## The SecureFlow Mission
+::: {.section .devtodefend-mission}
+## The DevToDefend Mission
 
-**SecureFlow** was created to bridge the gap between theoretical cybersecurity knowledge and practical, real-world application. Too often, valuable security insights remain locked in vendor whitepapers or academic research that doesn't translate to actionable defense strategies.
+**DevToDefend** was created to bridge the gap between theoretical cybersecurity knowledge and practical, real-world application. Too often, valuable security insights remain locked in vendor whitepapers or academic research that doesn't translate to actionable defense strategies.
 
-### What Makes SecureFlow Different
+### What Makes DevToDefend Different
 
 **🎯 Practical Focus:** Every tutorial and guide is tested in real environments before publication
 
@@ -309,7 +309,7 @@ I'm always interested in connecting with fellow cybersecurity professionals, dis
 **Looking to connect? Reach out if you:**
 - Have a complex security challenge you'd like to discuss
 - Want to collaborate on security research or content
-- Have suggestions for topics to cover on SecureFlow
+- Have suggestions for topics to cover on DevToDefend
 - Are interested in technical consulting or speaking engagements
 
 ::: {.contact-buttons}

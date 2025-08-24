@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# SecureFlow Deployment Script
-# This script builds and deploys the Quarto site
+# DevToDefend Deployment Script
+# This script renders and deploys the Quarto site to GitHub Pages
 
-echo "🚀 Starting SecureFlow deployment..."
+echo "🚀 Starting DevToDefend deployment..."
 
 # Check if Quarto is installed
 if ! command -v quarto &> /dev/null; then
@@ -33,7 +33,7 @@ if [ $? -eq 0 ]; then
     echo "2. Enable GitHub Pages in repository settings"
     echo "3. Set source to 'Deploy from a branch' and select 'main' branch, 'docs' folder"
     echo ""
-    echo "🌐 Your site will be available at: https://yugeshsecurity.github.io/SecureFlow/"
+    echo "🌐 Your site will be available at: https://yugeshsecurity.github.io/DevToDefend/"
 else
     echo "❌ Build failed. Check the error messages above."
     exit 1

@@ -581,7 +581,7 @@ class SBOMGenerator:
                 'timestamp': datetime.now().isoformat(),
                 'tools': [
                     {
-                        'vendor': 'SecureFlow',
+                        'vendor': 'DevToDefend',
                         'name': 'SBOM Generator',
                         'version': '1.0.0'
                     }

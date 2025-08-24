@@ -1,4 +1,4 @@
-/* Professional About Page Styles for SecureFlow */
+/* Professional About Page Styles for DevToDefend */
 
 /* CSS Variables for consistent theming */
 :root {
@@ -183,8 +183,8 @@
   font-weight: bold;
 }
 
-/* SecureFlow Mission Section */
-.secureflow-mission {
+/* DevToDefend Mission Section */
+.devtodefend-mission {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   color: white;
   padding: 60px 40px;
@@ -193,7 +193,7 @@
   overflow: hidden;
 }
 
-.secureflow-mission::before {
+.devtodefend-mission::before {
   content: '';
   position: absolute;
   top: 0;
@@ -204,28 +204,28 @@
   opacity: 0.3;
 }
 
-.secureflow-mission > * {
+.devtodefend-mission > * {
   position: relative;
   z-index: 2;
 }
 
-.secureflow-mission h2 {
+.devtodefend-mission h2 {
   color: white !important;
 }
 
-.secureflow-mission h2::after {
+.devtodefend-mission h2::after {
   background: linear-gradient(90deg, #ffffff, rgba(255, 255, 255, 0.5));
 }
 
-.secureflow-mission h3 {
+.devtodefend-mission h3 {
   color: #ffffff !important;
   font-size: 1.4rem !important;
   font-weight: 600 !important;
   margin: 30px 0 20px 0 !important;
 }
 
-.secureflow-mission p,
-.secureflow-mission li {
+.devtodefend-mission p,
+.devtodefend-mission li {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
@@ -427,7 +427,7 @@
   }
   
   .expertise-overview,
-  .secureflow-mission,
+  .devtodefend-mission,
   .connect {
     padding: 30px 20px;
   }

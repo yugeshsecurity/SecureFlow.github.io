@@ -25,7 +25,7 @@ format:
           </style>
 ---
 
-Welcome to SecureFlow's comprehensive collection of cybersecurity articles, technical tutorials, and professional insights. From beginner-friendly introductions to advanced security concepts, you'll find practical, actionable content designed to enhance your security knowledge and skills.
+Welcome to DevToDefend's comprehensive collection of cybersecurity articles, technical tutorials, and professional insights. From beginner-friendly introductions to advanced security concepts, you'll find practical, actionable content designed to enhance your security knowledge and skills.
 
 ## Latest Posts
 

@@ -1,17 +1,17 @@
 ---
-title: "Welcome to SecureFlow"
+title: "Welcome to DevToDefend"
 subtitle: "Your journey into cybersecurity excellence begins here"
 author: "Yugesh Mekala"
 date: "2024-01-01"
 categories: [welcome, cybersecurity, introduction]
-description: "Introduction to SecureFlow - a comprehensive platform for cybersecurity professionals and enthusiasts"
+description: "Introduction to DevToDefend - a comprehensive platform for cybersecurity professionals and enthusiasts"
 ---
 
-Welcome to **SecureFlow** - your comprehensive resource for cutting-edge cybersecurity insights, practical tutorials, and professional development in the ever-evolving world of information security.
+Welcome to **DevToDefend** - your comprehensive resource for cutting-edge cybersecurity insights, practical tutorials, and professional development in the ever-evolving world of information security.
 
-## What is SecureFlow?
+## What is DevToDefend?
 
-SecureFlow is more than just a blog; it's a community-driven platform designed to bridge the gap between theoretical cybersecurity knowledge and real-world application. Whether you're just starting your journey in cybersecurity or you're a seasoned professional looking to stay ahead of emerging threats, SecureFlow has something valuable for you.
+DevToDefend is more than just a blog; it's a community-driven platform designed to bridge the gap between theoretical cybersecurity knowledge and real-world application. Whether you're just starting your journey in cybersecurity or you're a seasoned professional looking to stay ahead of emerging threats, DevToDefend has something valuable for you.
 
 ## What You'll Find Here
 
@@ -29,7 +29,7 @@ Stay informed about the latest vulnerabilities, attack vectors, and defensive st
 
 ## Our Mission
 
-At SecureFlow, we believe that cybersecurity knowledge should be:
+At DevToDefend, we believe that cybersecurity knowledge should be:
 - **Accessible** to professionals at all levels
 - **Practical** and immediately actionable
 - **Current** with the latest threat landscape

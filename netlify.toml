@@ -1,0 +1,58 @@
+# Netlify configuration for DevToDefend Quarto site
+[build]
+publish = "_site"
+command = "npm run build"
+
+# Use Quarto Netlify Build Plugin to render on Netlify servers
+[[plugins]]
+package = "@quarto/netlify-plugin-quarto"
+
+# Environment variables
+[build.environment]
+NODE_VERSION = "18"
+NPM_VERSION = "9"
+
+# Headers for security and performance
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Content-Security-Policy = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' https:;"
+
+# Cache static assets
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.js"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirect rules for clean URLs (optional)
+[[redirects]]
+from = "/index.html"
+to = "/"
+status = 301
+force = true
+
+# Deploy previews configuration
+[deploy-preview]
+command = "npm run build"
+
+# Branch deploy configuration
+[context.branch-deploy]
+command = "npm run build"
+
+# Development context
+[context.dev]
+command = "npm run dev"
